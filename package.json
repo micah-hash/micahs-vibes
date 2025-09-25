@@ -1,0 +1,19 @@
+{
+  "name": "micahs-vibes",
+  "version": "1.0.0",
+  "description": "A monorepo for Micah's vibes projects",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter presentation dev",
+    "build": "pnpm --filter presentation build",
+    "start": "pnpm --filter presentation start",
+    "lint": "pnpm --filter presentation lint"
+  },
+  "keywords": [],
+  "author": "Micah Baird",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
