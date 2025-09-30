@@ -1213,7 +1213,6 @@ export default function Home() {
       <section className="reveal">
         <div className="section-container">
           <h2>Simple. Clear. Measurable.</h2>
-          <p>One page that tells the story as you scroll.</p>
         </div>
       </section>
 
