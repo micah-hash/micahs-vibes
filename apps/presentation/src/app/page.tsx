@@ -10,6 +10,7 @@ export default function Home() {
   const [kevinActiveTab, setKevinActiveTab] = useState('mobile');
   const [robActiveTab, setRobActiveTab] = useState('data');
   const [chaseActiveTab, setChaseActiveTab] = useState('infra');
+  const [benActiveTab, setBenActiveTab] = useState('finance');
 
   const handleMemberToggle = (memberId: string) => {
     setExpandedMember(prev => prev === memberId ? null : memberId);
@@ -1198,15 +1199,152 @@ export default function Home() {
           </div>
         </div>
 
-        <TeamMember
-          id="ben"
-          name="Ben"
-          role="Finance and Checkout"
-          isExpanded={expandedMember === "ben"}
-          onToggle={() => handleMemberToggle("ben")}
-          description="Financial integrations, checkout flow, and payment reliability. Add screenshots below once ready."
-          placeholders={2}
-        />
+        {/* Ben with Tabbed Interface */}
+        <div className="team-member reveal expandable" id="ben">
+          <button 
+            className="name-btn" 
+            aria-expanded={expandedMember === "ben"}
+            onClick={() => handleMemberToggle("ben")}
+          >
+            <div className="name">Ben</div>
+            <div className="role" style={{
+              opacity: expandedMember === "ben" ? 0 : 1,
+              transform: expandedMember === "ben" ? 'translateY(-10px)' : 'translateY(0)',
+              transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            }}>
+              Finance and Checkout
+            </div>
+          </button>
+          <div className={`details ${expandedMember === "ben" ? 'open' : ''}`} id="benDetails" hidden={expandedMember !== "ben"} style={{ maxHeight: expandedMember === "ben" ? '1200px' : '0', overflow: 'visible', padding: expandedMember === "ben" ? '8px 0' : '0' }}>
+            {/* Ben's Tabbed Interface */}
+            <div style={{ marginTop: '0px' }}>
+              {/* Tab Navigation */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: '24px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                borderRadius: '16px',
+                padding: '6px',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                maxWidth: '320px',
+                margin: '0 auto 24px',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                position: 'relative',
+                opacity: expandedMember === "ben" ? 1 : 0,
+                transform: expandedMember === "ben" ? 'translateY(0) scale(1)' : 'translateY(-20px) scale(0.95)',
+                transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transitionDelay: expandedMember === "ben" ? '0.2s' : '0s'
+              }}>
+                <button 
+                  onClick={() => setBenActiveTab('finance')}
+                  style={{
+                    flex: 1,
+                    background: benActiveTab === 'finance' 
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%)' 
+                      : 'transparent',
+                    border: 'none',
+                    color: benActiveTab === 'finance' ? '#ffffff' : 'rgba(255, 255, 255, 0.75)',
+                    padding: '14px 18px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: benActiveTab === 'finance' ? '600' : '500',
+                    cursor: 'pointer',
+                    minHeight: '48px',
+                    transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    letterSpacing: '-0.01em',
+                    boxShadow: benActiveTab === 'finance' 
+                      ? '0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                      : 'none',
+                    backdropFilter: benActiveTab === 'finance' ? 'blur(10px)' : 'none'
+                  }}>
+                  Finance
+                </button>
+                <button 
+                  onClick={() => setBenActiveTab('checkout')}
+                  style={{
+                    flex: 1,
+                    background: benActiveTab === 'checkout' 
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%)' 
+                      : 'transparent',
+                    border: 'none',
+                    color: benActiveTab === 'checkout' ? '#ffffff' : 'rgba(255, 255, 255, 0.75)',
+                    padding: '14px 18px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: benActiveTab === 'checkout' ? '600' : '500',
+                    cursor: 'pointer',
+                    minHeight: '48px',
+                    marginLeft: '2px',
+                    transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    letterSpacing: '-0.01em',
+                    boxShadow: benActiveTab === 'checkout' 
+                      ? '0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                      : 'none',
+                    backdropFilter: benActiveTab === 'checkout' ? 'blur(10px)' : 'none'
+                  }}>
+                  Checkout
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="tab-content" style={{ marginTop: '20px', minHeight: '200px' }}>
+                {benActiveTab === 'finance' && (
+                  <div className="shots">
+                    <img 
+                      src="/team/Ben/Transation History.png"
+                      alt="Transaction history and financial tracking interface"
+                      className="thumb"
+                      onClick={() => {
+                        const lightbox = document.getElementById('lightbox');
+                        if (lightbox) {
+                          const event = new CustomEvent('openLightbox', {
+                            detail: { 
+                              src: "/team/Ben/Transation History.png", 
+                              alt: "Transaction history and financial tracking interface", 
+                              screenshots: [
+                                {
+                                  src: "/team/Ben/Transation History.png",
+                                  alt: "Transaction history and financial tracking interface",
+                                  thumb: "/team/Ben/Transation History.png"
+                                }
+                              ],
+                              index: 0
+                            }
+                          });
+                          window.dispatchEvent(event);
+                          lightbox.hidden = false;
+                          requestAnimationFrame(() => {
+                            lightbox.classList.add('open');
+                          });
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                      }}
+                    />
+                  </div>
+                )}
+
+                {benActiveTab === 'checkout' && (
+                  <div className="shots">
+                    <div>Checkout screenshots will go here...</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </section>
 
