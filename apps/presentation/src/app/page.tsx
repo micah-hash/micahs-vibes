@@ -40,7 +40,7 @@ export default function Home() {
     // Parallax effect for hero section
     const handleScroll = () => {
       const scrolled = window.pageYOffset;
-      const heroSection = document.querySelector('section:first-child');
+      const heroSection = document.querySelector('section:first-child') as HTMLElement;
       if (heroSection) {
         const rate = scrolled * -0.3;
         heroSection.style.transform = `translateY(${rate}px)`;
