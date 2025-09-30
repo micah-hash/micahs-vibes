@@ -37,7 +37,22 @@ export default function Home() {
       yearElement.textContent = new Date().getFullYear().toString();
     }
 
-    return () => observer.disconnect();
+    // Parallax effect for hero section
+    const handleScroll = () => {
+      const scrolled = window.pageYOffset;
+      const heroSection = document.querySelector('section:first-child');
+      if (heroSection) {
+        const rate = scrolled * -0.3;
+        heroSection.style.transform = `translateY(${rate}px)`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
@@ -155,14 +170,7 @@ export default function Home() {
                       alt="Multi-factor authentication system interface"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -206,14 +214,7 @@ export default function Home() {
                       alt="Backend insights dashboard showing API latency and metrics"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -449,14 +450,7 @@ export default function Home() {
                       alt="Order list view in Fluid system with comprehensive order tracking"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -510,14 +504,7 @@ export default function Home() {
                       alt="Order interface in Fluid system showing order management"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -571,14 +558,7 @@ export default function Home() {
                       alt="Final order matching interface with Exigo integration"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -632,14 +612,7 @@ export default function Home() {
                       alt="Order matching system showing Exigo synchronization"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -697,14 +670,7 @@ export default function Home() {
                       alt="Sentrybot droplets monitoring and management interface"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -911,14 +877,7 @@ export default function Home() {
                       alt="Mobile error handling and outage management interface"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -962,14 +921,7 @@ export default function Home() {
                       alt="Fluid mobile application interface"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -1029,14 +981,7 @@ export default function Home() {
                       alt="Google Cloud themes interface showing customization options"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -1085,14 +1030,7 @@ export default function Home() {
                       alt="Lighthouse themes configuration and performance metrics"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
@@ -1141,14 +1079,7 @@ export default function Home() {
                       alt="Uptime monitoring dashboard with theme customization"
                       width="320"
                       height="200"
-                      style={{
-                        borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                        cursor: 'pointer',
-                        margin: '10px',
-                        display: 'inline-block',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                      }}
+                      className="thumb"
                       onClick={() => {
                         const lightbox = document.getElementById('lightbox');
                         if (lightbox) {
