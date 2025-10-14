@@ -29,7 +29,8 @@ export class FluidApiClient {
       baseUrl = `https://api.fluid.app/api`;
     } else if (apiVersion === 'public') {
       // Public SDK API for commerce operations - uses company subdomain!
-      baseUrl = `https://${this.companySubdomain}.fluid.app/api/public/v2025-06`;
+      // Try v1 as v2025-06 returned 404
+      baseUrl = `https://${this.companySubdomain}.fluid.app/api/public/v1`;
     } else {
       baseUrl = `https://${this.companySubdomain}.fluid.app/api`;
     }
@@ -138,7 +139,7 @@ export class FluidApiClient {
 
   /**
    * Create a session to get a cart token
-   * POST https://{company}.fluid.app/api/public/v2025-06/session
+   * POST https://{company}.fluid.app/api/public/v1/session
    * 
    * Company context is in the subdomain URL
    */
@@ -149,7 +150,7 @@ export class FluidApiClient {
       throw new Error('Company subdomain is required to create a session');
     }
     
-    console.log(`📤 Sending session request to: https://${this.companySubdomain}.fluid.app/api/public/v2025-06/session`);
+    console.log(`📤 Sending session request to: https://${this.companySubdomain}.fluid.app/api/public/v1/session`);
     
     // Company context is in the URL subdomain, so we just need an empty POST
     const result = await this.request('/session', 'public', {
@@ -163,7 +164,7 @@ export class FluidApiClient {
 
   /**
    * Add product to cart using Fluid Public API
-   * POST /api/public/v2025-06/commerce/carts/{cart_token}/items
+   * POST /api/public/v1/commerce/carts/{cart_token}/items
    */
   async addToCart(cartToken: string, data: { product_id: string; quantity?: number; variant_id?: string }) {
     console.log(`🛒 Adding to cart with token: ${cartToken}`);
@@ -180,7 +181,7 @@ export class FluidApiClient {
 
   /**
    * Get cart information
-   * GET /api/public/v2025-06/commerce/carts/{cart_token}/cart_info
+   * GET /api/public/v1/commerce/carts/{cart_token}/cart_info
    */
   async getCartInfo(cartToken: string) {
     return this.request(`/commerce/carts/${cartToken}/cart_info`, 'public');
@@ -188,7 +189,7 @@ export class FluidApiClient {
 
   /**
    * Complete checkout using Fluid Public API
-   * POST /api/public/v2025-06/commerce/carts/{cart_token}/checkout
+   * POST /api/public/v1/commerce/carts/{cart_token}/checkout
    */
   async processCheckout(cartToken: string, data: any) {
     return this.request(`/commerce/carts/${cartToken}/checkout`, 'public', {
