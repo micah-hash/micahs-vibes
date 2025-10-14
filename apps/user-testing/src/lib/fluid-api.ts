@@ -139,7 +139,7 @@ export class FluidApiClient {
 
   /**
    * Create a session to get a cart token and session ID
-   * POST https://{company}.fluid.app/api/public/v1/session
+   * POST https://{company}.fluid.app/api/public/v2025-06/session
    * 
    * Company context is in the subdomain URL
    * Returns: { cart_token, fluid_session, ... }
@@ -151,23 +151,56 @@ export class FluidApiClient {
       throw new Error('Company subdomain is required to create a session');
     }
     
-    console.log(`📤 Sending session request to: https://${this.companySubdomain}.fluid.app/api/public/v1/session`);
+    // Try multiple API versions to find the correct endpoint
+    const apiVersions = ['v2025-06', 'v1'];
     
-    // Company context is in the URL subdomain, so we just need an empty POST
-    const result = await this.request<any>('/session', 'public', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
+    for (const version of apiVersions) {
+      const url = `https://${this.companySubdomain}.fluid.app/api/public/${version}/session`;
+      
+      console.log(`📤 Trying session request to: ${url}`);
+      
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        });
+
+        console.log(`📡 Response status (${version}): ${response.status} ${response.statusText}`);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(`✅ Session created (${version}):`, result);
+          
+          // Extract and log the important fields
+          const cartToken = result.cart_token || result.token || result.cartToken || result.id;
+          const fluidSession = result.fluid_session || result.session_id || result.sessionId;
+          
+          console.log(`📋 Extracted: cart_token=${cartToken}, fluid_session=${fluidSession}`);
+          
+          return result;
+        }
+        
+        const errorText = await response.text();
+        console.warn(`⚠️  Session creation failed (${version}): ${response.status} ${response.statusText}`);
+        
+        // Continue to next version
+      } catch (error) {
+        console.warn(`⚠️  Session creation error (${version}):`, error);
+        // Continue to next version
+      }
+    }
     
-    console.log(`✅ Session created:`, result);
-    
-    // Extract and log the important fields
-    const cartToken = result.cart_token || result.token || result.cartToken || result.id;
-    const fluidSession = result.fluid_session || result.session_id || result.sessionId;
-    
-    console.log(`📋 Extracted: cart_token=${cartToken}, fluid_session=${fluidSession}`);
-    
-    return result;
+    // If all versions failed, throw a descriptive error
+    throw new Error(
+      `Session endpoint not available at any known API version. ` +
+      `This might mean: 1) The session endpoint requires authentication, ` +
+      `2) The endpoint is not enabled for this company, or ` +
+      `3) A different approach is needed to create cart tokens. ` +
+      `Tried versions: ${apiVersions.join(', ')}`
+    );
   }
 
   /**
