@@ -39,7 +39,7 @@ export class FluidApiClient {
     console.log(`🌐 Fluid API Request: ${url}`);
     console.log(`🔑 API Version: ${apiVersion}`);
     
-    // Build headers - Public API doesn't use Authorization header
+    // Start with base headers
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -49,11 +49,14 @@ export class FluidApiClient {
       headers['Authorization'] = `Bearer ${this.authToken}`;
     }
     
-    // Merge with any custom headers from options
+    // Merge with any custom headers from options (custom headers take precedence)
+    const customHeaders = options.headers as Record<string, string> | undefined;
     const finalHeaders = {
       ...headers,
-      ...(options.headers as Record<string, string>),
+      ...(customHeaders || {}),
     };
+    
+    console.log(`📋 Request headers:`, Object.keys(finalHeaders));
     
     const response = await fetch(url, {
       ...options,
@@ -136,6 +139,8 @@ export class FluidApiClient {
   /**
    * Create a session to get a cart token
    * POST /api/public/v2025-06/session
+   * 
+   * Note: Fluid Public API may expect company context in headers
    */
   async createSession() {
     console.log(`🎫 Creating session for company: ${this.companySubdomain}`);
@@ -149,10 +154,16 @@ export class FluidApiClient {
     
     console.log(`📤 Sending session request with subdomain: "${subdomain}"`);
     
+    // Try both body and header approaches for company context
     const result = await this.request('/session', 'public', {
       method: 'POST',
+      headers: {
+        'X-Company-Subdomain': subdomain,
+        'Fluid-Company': subdomain,
+      },
       body: JSON.stringify({
         company_subdomain: subdomain,
+        subdomain: subdomain,
       }),
     });
     
