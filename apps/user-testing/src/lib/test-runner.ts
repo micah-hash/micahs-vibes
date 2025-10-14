@@ -166,19 +166,37 @@ export class TestRunner {
 
     // Step 4: Simulate purchase readiness check
     const step4 = await this.executeStep('Validate purchase prerequisites', async () => {
-      const step3Data = JSON.parse(step3.details || '{}');
+      let step3Data: any = {};
+      
+      try {
+        step3Data = JSON.parse(step3.details || '{}');
+        console.log('[Test Runner] Step 3 data:', step3Data);
+      } catch (e) {
+        console.error('[Test Runner] Failed to parse step3 details:', e);
+        throw new Error('Failed to parse product data from previous step');
+      }
       
       // Verify we have all necessary data for a purchase
-      const ready = !!(step3Data.productId && step3Data.productName);
+      const hasProductId = !!step3Data.productId;
+      const hasProductName = !!step3Data.productName;
       
-      if (!ready) {
-        throw new Error('Missing required data for purchase flow');
+      console.log('[Test Runner] Product validation:', { 
+        hasProductId, 
+        hasProductName,
+        productId: step3Data.productId,
+        productName: step3Data.productName
+      });
+      
+      if (!hasProductId || !hasProductName) {
+        throw new Error(`Missing required data - productId: ${hasProductId}, productName: ${hasProductName}`);
       }
       
       return { 
         purchaseReady: true,
         productValidated: true,
         testPassed: true,
+        productId: step3Data.productId,
+        productName: step3Data.productName,
         note: 'Product purchase flow validated successfully (simulation mode - actual cart/checkout APIs not available)'
       };
     });
@@ -186,8 +204,11 @@ export class TestRunner {
 
     if (step4.status === 'failed') throw new Error(step4.error);
 
+    // Extract final data from step 4
+    const step4Data = step4.details ? JSON.parse(step4.details) : {};
     result.metadata = { 
-      productId: JSON.parse(step3.details || '{}').productId,
+      productId: step4Data.productId,
+      productName: step4Data.productName,
       note: 'Test validates API connectivity and product availability. Full cart/checkout flow requires Fluid UI.'
     };
   }
