@@ -793,14 +793,14 @@ export default function EmbedPage() {
                       return (
                         <div
                           key={result.id}
-                          className={`group relative backdrop-blur-xl rounded-2xl shadow-lg border transition-all duration-300 ${
+                          className={`group relative backdrop-blur-xl rounded-2xl shadow-lg border transition-all duration-300 cursor-pointer ${
                             result.status === 'passed'
                               ? 'border-emerald-200/50 bg-white/80 hover:border-emerald-300'
                               : 'border-red-200/50 bg-white/80 hover:border-red-300'
                           }`}
                         >
                           {/* Main Result Row */}
-                          <div className="p-5">
+                          <div className="p-5" onClick={() => toggleResultExpanded(result.id)}>
                             <div className="flex items-center justify-between">
                               {/* Left: Test Info */}
                               <div className="flex items-center gap-4 flex-1">
@@ -828,6 +828,10 @@ export default function EmbedPage() {
                                     <span className="text-xs text-gray-600 font-semibold">
                                       ⏱ {result.duration ? (result.duration / 1000).toFixed(2) : 0}s
                                     </span>
+                                    <span className="text-xs text-gray-400">•</span>
+                                    <span className="text-xs text-gray-600 font-semibold">
+                                      {result.steps.length} step{result.steps.length !== 1 ? 's' : ''}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -844,32 +848,37 @@ export default function EmbedPage() {
                                   {result.status === 'passed' ? 'PASSED' : 'FAILED'}
                                 </span>
 
-                                {/* Expand Button (only show for failed tests) */}
-                                {hasFailed && (
-                                  <button
-                                    onClick={() => toggleResultExpanded(result.id)}
-                                    className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                                {/* Expand Button (show for all tests) */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleResultExpanded(result.id);
+                                  }}
+                                  className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                                >
+                                  {isExpanded ? 'Hide' : 'Show'} Details
+                                  <svg
+                                    className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                   >
-                                    {isExpanded ? 'Hide' : 'Show'} Details
-                                    <svg
-                                      className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </button>
-                                )}
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
                               </div>
                             </div>
                           </div>
 
-                          {/* Expandable Error Details (only for failed tests) */}
-                          {hasFailed && isExpanded && (
-                            <div className="border-t border-gray-200 bg-gradient-to-br from-red-50/50 to-rose-50/30 p-5">
-                              {/* Main Error */}
-                              {result.error && (
+                          {/* Expandable Details (for all tests) */}
+                          {isExpanded && (
+                            <div className={`border-t border-gray-200 p-5 ${
+                              hasFailed 
+                                ? 'bg-gradient-to-br from-red-50/50 to-rose-50/30' 
+                                : 'bg-gradient-to-br from-emerald-50/50 to-green-50/30'
+                            }`}>
+                              {/* Main Error (for failed tests) */}
+                              {hasFailed && result.error && (
                                 <div className="bg-red-100/80 backdrop-blur border border-red-200 rounded-xl p-4 mb-4">
                                   <p className="text-xs text-red-900 font-bold mb-2 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -881,22 +890,85 @@ export default function EmbedPage() {
                                 </div>
                               )}
 
-                              {/* Failed Steps */}
+                              {/* Test Summary (for passed tests) */}
+                              {!hasFailed && result.metadata && (
+                                <div className="bg-emerald-100/80 backdrop-blur border border-emerald-200 rounded-xl p-4 mb-4">
+                                  <p className="text-xs text-emerald-900 font-bold mb-2 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Test Summary:
+                                  </p>
+                                  <div className="text-sm text-emerald-800 space-y-1">
+                                    {result.metadata.testMode && (
+                                      <p><span className="font-semibold">Mode:</span> {result.metadata.testMode}</p>
+                                    )}
+                                    {result.metadata.productName && (
+                                      <p><span className="font-semibold">Product:</span> {result.metadata.productName}</p>
+                                    )}
+                                    {result.metadata.orderId && (
+                                      <p><span className="font-semibold">Order ID:</span> {result.metadata.orderId}</p>
+                                    )}
+                                    {result.metadata.note && (
+                                      <p className="text-xs mt-2 text-emerald-700 italic">{result.metadata.note}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Failed Steps (for failed tests only) */}
+                              {hasFailed && result.steps.filter(step => step.status === 'failed').length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                  <p className="text-xs font-bold text-gray-700 mb-3">Failed Steps:</p>
+                                  {result.steps.filter(step => step.status === 'failed').map((step, idx) => (
+                                    <div key={idx} className="bg-white/80 backdrop-blur border border-red-200/50 rounded-xl p-4">
+                                      <div className="flex items-start gap-3">
+                                        <span className="text-red-600 text-lg font-bold">✗</span>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-semibold text-gray-900">{step.name}</p>
+                                          {step.error && (
+                                            <p className="text-xs text-red-700 mt-2 font-mono bg-red-50 p-2 rounded">{step.error}</p>
+                                          )}
+                                          {step.details && (
+                                            <details className="mt-2">
+                                              <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-900 font-semibold">
+                                                View Technical Details
+                                              </summary>
+                                              <pre className="text-xs text-gray-700 mt-2 bg-gray-50 p-3 rounded overflow-x-auto font-mono">
+                                                {step.details}
+                                              </pre>
+                                            </details>
+                                          )}
+                                        </div>
+                                        <span className="text-xs text-gray-500 font-semibold">
+                                          {(step.duration / 1000).toFixed(2)}s
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* All Steps - Always visible */}
                               <div className="space-y-2">
-                                <p className="text-xs font-bold text-gray-700 mb-3">Failed Steps:</p>
-                                {result.steps.filter(step => step.status === 'failed').map((step, idx) => (
-                                  <div key={idx} className="bg-white/80 backdrop-blur border border-red-200/50 rounded-xl p-4">
+                                <p className="text-xs font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                  </svg>
+                                  All Steps ({result.steps.length})
+                                </p>
+                                {result.steps.map((step, idx) => (
+                                  <div key={idx} className="bg-white/80 backdrop-blur border border-gray-100 rounded-xl p-4">
                                     <div className="flex items-start gap-3">
-                                      <span className="text-red-600 text-lg font-bold">✗</span>
+                                      <span className={`text-lg font-bold ${step.status === 'passed' ? 'text-emerald-600' : 'text-red-600'}`}>
+                                        {step.status === 'passed' ? '✓' : '✗'}
+                                      </span>
                                       <div className="flex-1">
                                         <p className="text-sm font-semibold text-gray-900">{step.name}</p>
-                                        {step.error && (
-                                          <p className="text-xs text-red-700 mt-2 font-mono bg-red-50 p-2 rounded">{step.error}</p>
-                                        )}
                                         {step.details && (
                                           <details className="mt-2">
                                             <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-900 font-semibold">
-                                              View Details
+                                              View Step Details
                                             </summary>
                                             <pre className="text-xs text-gray-700 mt-2 bg-gray-50 p-3 rounded overflow-x-auto font-mono">
                                               {step.details}
@@ -912,37 +984,14 @@ export default function EmbedPage() {
                                 ))}
                               </div>
 
-                              {/* All Steps Summary */}
-                              <details className="mt-4">
-                                <summary className="text-xs font-semibold text-gray-700 cursor-pointer hover:text-gray-900 flex items-center gap-2">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                  </svg>
-                                  View All Steps ({result.steps.length})
-                                </summary>
-                                <div className="mt-3 space-y-2">
-                                  {result.steps.map((step, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 text-xs bg-white/60 backdrop-blur rounded-lg p-3 border border-gray-100">
-                                      <span className={`font-bold ${step.status === 'passed' ? 'text-emerald-600' : 'text-red-600'}`}>
-                                        {step.status === 'passed' ? '✓' : '✗'}
-                                      </span>
-                                      <span className="text-gray-700 font-medium flex-1">{step.name}</span>
-                                      <span className="text-gray-500 font-semibold">
-                                        {(step.duration / 1000).toFixed(2)}s
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </details>
-
-                              {/* Metadata */}
+                              {/* Metadata - Always visible if present */}
                               {result.metadata && Object.keys(result.metadata).length > 0 && (
                                 <details className="mt-4">
                                   <summary className="text-xs font-semibold text-gray-700 cursor-pointer hover:text-gray-900 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Test Metadata
+                                    Technical Metadata
                                   </summary>
                                   <pre className="mt-3 text-xs text-gray-700 bg-gray-50 p-3 rounded overflow-x-auto font-mono">
                                     {JSON.stringify(result.metadata, null, 2)}
