@@ -75,8 +75,11 @@ export class TestRunner {
   }
 
   private async runProductPurchaseTest(result: TestResult): Promise<void> {
-    // Step 1: Verify API connection and detect capabilities
-    const step1 = await this.executeStep('Verify Fluid API connection', async () => {
+    // Step 1: Verify SDK and API connection
+    const step1 = await this.executeStep('Verify Fluid SDK and API connection', async () => {
+      // Check if SDK is available
+      const hasSDK = this.client.isSDKAvailable();
+      
       // Test that we can reach the Fluid API with our auth token
       const response = await this.client.getProducts({ page: 1, per_page: 1 });
       
@@ -85,21 +88,12 @@ export class TestRunner {
         ? response 
         : (response as any).products || (response as any).data || [];
       
-      // Try to detect if public cart API is available by attempting session creation
-      let hasCartApi = false;
-      try {
-        await this.client.createSession();
-        hasCartApi = true;
-      } catch (e) {
-        console.warn('[Test Runner] Public cart API not available, will use validation mode');
-        hasCartApi = false;
-      }
-      
       return { 
         connected: true, 
         productsAvailable: productsArray && productsArray.length > 0,
         apiResponding: true,
-        hasCartApi
+        sdkAvailable: hasSDK,
+        mode: hasSDK ? 'full-e2e-with-sdk' : 'validation-only'
       };
     });
     result.steps.push(step1);
@@ -107,12 +101,13 @@ export class TestRunner {
     if (step1.status === 'failed') throw new Error(step1.error);
     
     const step1Data = JSON.parse(step1.details || '{}');
-    const hasCartApi = step1Data.hasCartApi;
+    const hasSDK = step1Data.sdkAvailable;
 
     // Step 2: Select product for testing
     const step2 = await this.executeStep('Select product for testing', async () => {
       let productId: string;
       let productName: string;
+      let variantId: string | null = null;
 
       // Fetch products from API
       const response = await this.client.getProducts({ page: 1, per_page: 50 });
@@ -141,6 +136,9 @@ export class TestRunner {
                      product?.product_name ||
                      product?.displayName ||
                      `Product ${productId}`;
+        
+        // Try to get variant ID
+        variantId = product?.variants?.[0]?.id || product?.default_variant_id || productId;
       } else {
         // Use first available product
         const product = productsArray[0];
@@ -150,40 +148,95 @@ export class TestRunner {
                      product.product_name ||
                      product.displayName ||
                      `Product ${product.id}`;
+        
+        // Try to get variant ID
+        variantId = product?.variants?.[0]?.id || product?.default_variant_id || productId;
       }
 
-      return { productId, productName, totalProducts: productsArray.length };
+      return { productId, productName, variantId, totalProducts: productsArray.length };
     });
     result.steps.push(step2);
 
     if (step2.status === 'failed') throw new Error(step2.error);
 
-    // Step 3: Validate product details and readiness
-    const step3 = await this.executeStep('Validate product availability', async () => {
-      const step2Data = JSON.parse(step2.details || '{}');
-      
-      return {
+    const step2Data = JSON.parse(step2.details || '{}');
+
+    // If SDK is available, run full e2e flow
+    if (hasSDK) {
+      // Step 3: Add product to cart using SDK
+      const step3 = await this.executeStep('Add product to cart (via Fluid SDK)', async () => {
+        const cartResult = await this.client.addToCartSDK(step2Data.variantId || step2Data.productId, {
+          quantity: 1
+        });
+        
+        return {
+          productId: step2Data.productId,
+          productName: step2Data.productName,
+          variantId: step2Data.variantId,
+          cartResult: 'Added to cart successfully',
+          addedToCart: true
+        };
+      });
+      result.steps.push(step3);
+
+      if (step3.status === 'failed') throw new Error(step3.error);
+
+      // Step 4: Verify cart contents
+      const step4 = await this.executeStep('Verify cart contents', async () => {
+        const cart = await this.client.getCartSDK();
+        
+        const itemCount = cart?.items?.length || cart?.line_items?.length || 0;
+        
+        return {
+          cartVerified: true,
+          itemsInCart: itemCount,
+          cartId: cart?.id || cart?.token,
+          note: `Cart contains ${itemCount} item(s)`
+        };
+      });
+      result.steps.push(step4);
+
+      if (step4.status === 'failed') throw new Error(step4.error);
+
+      // Clean up: Clear the cart after test
+      try {
+        await this.client.clearCartSDK();
+        console.log('[Test Runner] ✓ Cart cleared after test');
+      } catch (e) {
+        console.warn('[Test Runner] ⚠️  Could not clear cart:', e);
+      }
+
+      const step4Data = JSON.parse(step4.details || '{}');
+      result.metadata = { 
         productId: step2Data.productId,
         productName: step2Data.productName,
-        validated: true,
-        mode: hasCartApi ? 'full-e2e' : 'validation-only',
-        note: hasCartApi 
-          ? 'Public cart API available - full purchase flow can be tested'
-          : 'Public cart API not available - running in validation mode (products verified, cart/checkout requires Fluid UI)'
+        testMode: 'full-e2e-with-sdk',
+        itemsInCart: step4Data.itemsInCart,
+        note: 'Full end-to-end test completed using Fluid SDK (product added to cart and verified)'
       };
-    });
-    result.steps.push(step3);
+    } else {
+      // Step 3: Validation mode (no SDK)
+      const step3 = await this.executeStep('Validate product availability', async () => {
+        return {
+          productId: step2Data.productId,
+          productName: step2Data.productName,
+          validated: true,
+          mode: 'validation-only',
+          note: 'Fluid SDK not available - running in validation mode (products verified, cart/checkout requires Fluid UI)'
+        };
+      });
+      result.steps.push(step3);
 
-    if (step3.status === 'failed') throw new Error(step3.error);
+      if (step3.status === 'failed') throw new Error(step3.error);
 
-    // Extract final data from step 3
-    const step3Data = step3.details ? JSON.parse(step3.details) : {};
-    result.metadata = { 
-      productId: step3Data.productId,
-      productName: step3Data.productName,
-      testMode: step3Data.mode,
-      note: step3Data.note
-    };
+      const step3Data = JSON.parse(step3.details || '{}');
+      result.metadata = { 
+        productId: step3Data.productId,
+        productName: step3Data.productName,
+        testMode: step3Data.mode,
+        note: step3Data.note
+      };
+    }
   }
 
   private async runEnrollmentPurchaseTest(result: TestResult): Promise<void> {

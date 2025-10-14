@@ -33,6 +33,11 @@ export default function EmbedPage() {
       sessionStorage.setItem('fluid_auth_token', token);
     }
 
+    // Load Fluid SDK for cart operations
+    if (company) {
+      loadFluidSDK(company);
+    }
+
     // Initialize test configs
     const defaultConfigs: TestConfig[] = Object.entries(TEST_DEFINITIONS).map(([id, def]) => ({
       id: id as TestType,
@@ -62,6 +67,31 @@ export default function EmbedPage() {
       loadMockData();
     }
   }, [searchParams]);
+
+  const loadFluidSDK = (companyId: string) => {
+    // Check if SDK is already loaded
+    if (document.getElementById('fluid-cdn-script')) {
+      console.log('[Fluid SDK] Already loaded');
+      return;
+    }
+
+    console.log(`[Fluid SDK] Loading SDK for company: ${companyId}`);
+    
+    const script = document.createElement('script');
+    script.id = 'fluid-cdn-script';
+    script.src = 'https://assets.fluid.app/scripts/fluid-sdk/latest/web-widgets/index.js';
+    script.setAttribute('data-fluid-shop', companyId);
+    
+    script.onload = () => {
+      console.log('[Fluid SDK] Successfully loaded');
+    };
+    
+    script.onerror = () => {
+      console.error('[Fluid SDK] Failed to load');
+    };
+    
+    document.head.appendChild(script);
+  };
 
   const loadMockData = () => {
     // Mock test results

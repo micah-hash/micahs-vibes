@@ -421,6 +421,130 @@ export class FluidApiClient {
       message: 'Logged out successfully',
     };
   }
+
+  /**
+   * Check if Fluid SDK is available
+   */
+  isSDKAvailable(): boolean {
+    return typeof window !== 'undefined' && !!(window as any).FairShareSDK;
+  }
+
+  /**
+   * Wait for SDK to be available (with timeout)
+   */
+  async waitForSDK(timeoutMs: number = 5000): Promise<boolean> {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeoutMs) {
+      if (this.isSDKAvailable()) {
+        return true;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    return false;
+  }
+
+  /**
+   * Add items to cart using Fluid SDK
+   * This is the preferred method for cart operations
+   */
+  async addToCartSDK(variantId: string | number, options?: { quantity?: number; subscribe?: boolean }): Promise<any> {
+    console.log(`🛒 Adding to cart via SDK: variant ${variantId}`);
+    
+    if (!this.isSDKAvailable()) {
+      console.log('⏳ Waiting for SDK to load...');
+      const sdkReady = await this.waitForSDK();
+      if (!sdkReady) {
+        throw new Error('Fluid SDK not available - please ensure the SDK script is loaded');
+      }
+    }
+
+    const sdk = (window as any).FairShareSDK;
+    
+    try {
+      const result = await sdk.addCartItems([{
+        variant_id: variantId,
+        quantity: options?.quantity || 1,
+        subscribe: options?.subscribe || false,
+      }]);
+      
+      console.log('✅ Added to cart via SDK:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to add to cart via SDK:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get current cart using Fluid SDK
+   */
+  async getCartSDK(): Promise<any> {
+    console.log('🛒 Getting cart via SDK');
+    
+    if (!this.isSDKAvailable()) {
+      console.log('⏳ Waiting for SDK to load...');
+      const sdkReady = await this.waitForSDK();
+      if (!sdkReady) {
+        throw new Error('Fluid SDK not available');
+      }
+    }
+
+    const sdk = (window as any).FairShareSDK;
+    
+    try {
+      const cart = await sdk.getCart();
+      console.log('✅ Got cart via SDK:', cart);
+      return cart;
+    } catch (error) {
+      console.error('❌ Failed to get cart via SDK:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Proceed to checkout using Fluid SDK
+   */
+  async checkoutSDK(): Promise<any> {
+    console.log('💳 Proceeding to checkout via SDK');
+    
+    if (!this.isSDKAvailable()) {
+      throw new Error('Fluid SDK not available');
+    }
+
+    const sdk = (window as any).FairShareSDK;
+    
+    try {
+      const result = await sdk.checkout();
+      console.log('✅ Checkout initiated via SDK:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to checkout via SDK:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear cart using Fluid SDK
+   */
+  async clearCartSDK(): Promise<void> {
+    console.log('🗑️  Clearing cart via SDK');
+    
+    if (!this.isSDKAvailable()) {
+      throw new Error('Fluid SDK not available');
+    }
+
+    const sdk = (window as any).FairShareSDK;
+    
+    try {
+      await sdk.clearCart();
+      console.log('✅ Cart cleared via SDK');
+    } catch (error) {
+      console.error('❌ Failed to clear cart via SDK:', error);
+      throw error;
+    }
+  }
 }
 
 /**
