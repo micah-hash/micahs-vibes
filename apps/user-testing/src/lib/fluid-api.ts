@@ -140,10 +140,19 @@ export class FluidApiClient {
   async createSession() {
     console.log(`🎫 Creating session for company: ${this.companySubdomain}`);
     
+    if (!this.companySubdomain) {
+      throw new Error('Company subdomain is required to create a session');
+    }
+    
+    // Ensure subdomain is lowercase and trimmed
+    const subdomain = this.companySubdomain.toLowerCase().trim();
+    
+    console.log(`📤 Sending session request with subdomain: "${subdomain}"`);
+    
     const result = await this.request('/session', 'public', {
       method: 'POST',
       body: JSON.stringify({
-        company_subdomain: this.companySubdomain,
+        company_subdomain: subdomain,
       }),
     });
     

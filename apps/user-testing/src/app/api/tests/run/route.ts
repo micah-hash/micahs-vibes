@@ -8,9 +8,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { testType, companySubdomain, authToken, settings } = body;
 
+    console.log('[API /api/tests/run] Received request:', {
+      testType,
+      companySubdomain,
+      hasAuthToken: !!authToken,
+      authTokenLength: authToken?.length,
+      settings: settings ? Object.keys(settings) : 'none',
+    });
+
     if (!testType || !companySubdomain || !authToken) {
+      console.error('[API /api/tests/run] Missing required fields:', {
+        hasTestType: !!testType,
+        hasCompanySubdomain: !!companySubdomain,
+        hasAuthToken: !!authToken,
+      });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields', details: {
+          testType: !!testType,
+          companySubdomain: !!companySubdomain,
+          authToken: !!authToken,
+        }},
         { status: 400 }
       );
     }
@@ -27,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Test execution error:', error);
+    console.error('[API /api/tests/run] Test execution error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Test execution failed' },
       { status: 500 }

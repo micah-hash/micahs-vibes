@@ -1,0 +1,39 @@
+# Project Setup
+
+**pnpm workspace monorepo** (pnpm@10.17.1)
+
+## Apps
+- `apps/presentation` - Next.js app (port 3000, default)
+- `apps/user-testing` - Next.js app (port 3001)
+
+## Commands
+
+### Root level (targets presentation by default)
+```bash
+pnpm dev        # Run presentation dev server
+pnpm build      # Build presentation
+pnpm start      # Start presentation prod server
+pnpm lint       # Lint presentation
+```
+
+### Specific app
+```bash
+pnpm --filter presentation dev    # Port 3000
+pnpm --filter user-testing dev    # Port 3001
+pnpm --filter <app-name> <command>
+```
+
+### All apps
+```bash
+pnpm -r dev     # Run dev in all apps
+pnpm -r build   # Build all apps
+```
+
+## Tech Stack
+- Next.js 15 (App Router, Turbopack)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- ESLint 9
+
+
