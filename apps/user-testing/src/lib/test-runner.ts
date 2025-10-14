@@ -75,28 +75,36 @@ export class TestRunner {
   }
 
   private async runProductPurchaseTest(result: TestResult): Promise<void> {
-    // Step 1: Verify API Connection
-    const step1 = await this.executeStep('Verify Fluid API connection', async () => {
-      // Test that we can reach the Fluid API with our auth token
-      const response = await this.client.getProducts({ page: 1, per_page: 1 });
+    // Step 1: Create session to get cart token
+    const step1 = await this.executeStep('Create shopping session', async () => {
+      const session = await this.client.createSession();
+      console.log('[Test Runner] Session response:', session);
       
-      // Handle different response structures
-      const productsArray = Array.isArray(response) 
-        ? response 
-        : (response as any).products || (response as any).data || [];
+      // Extract cart token and session ID from various possible fields
+      const cartToken = (session as any).cart_token || 
+                       (session as any).token || 
+                       (session as any).cartToken ||
+                       (session as any).id;
       
-      return { 
-        connected: true, 
-        productsAvailable: productsArray && productsArray.length > 0,
-        apiResponding: true 
-      };
+      const fluidSession = (session as any).fluid_session || 
+                          (session as any).session_id || 
+                          (session as any).sessionId;
+      
+      if (!cartToken) {
+        console.error('[Test Runner] No cart token found in session response:', session);
+        throw new Error('No cart token returned from session creation');
+      }
+      
+      console.log('[Test Runner] Extracted cart token:', cartToken);
+      console.log('[Test Runner] Extracted fluid session:', fluidSession);
+      return { cartToken, fluidSession };
     });
     result.steps.push(step1);
 
     if (step1.status === 'failed') throw new Error(step1.error);
 
-    // Step 2: Fetch and validate product availability
-    const step2 = await this.executeStep('Fetch available products', async () => {
+    // Step 2: Select product for testing
+    const step2 = await this.executeStep('Select product for testing', async () => {
       let productId: string;
       let productName: string;
 
@@ -115,7 +123,7 @@ export class TestRunner {
         throw new Error('No products available in catalog');
       }
 
-      // If specific products are configured, validate them
+      // If specific products are configured, use them
       if (this.settings?.selectedProductIds && this.settings.selectedProductIds.length > 0) {
         // Pick a random product from the selected ones
         const randomIndex = Math.floor(Math.random() * this.settings.selectedProductIds.length);
@@ -138,106 +146,87 @@ export class TestRunner {
                      `Product ${product.id}`;
       }
 
-      return { productId, productName, validated: true, totalProducts: productsArray.length };
+      return { productId, productName, totalProducts: productsArray.length };
     });
     result.steps.push(step2);
 
     if (step2.status === 'failed') throw new Error(step2.error);
 
-    // Step 3: Verify product details
-    const step3 = await this.executeStep('Verify product details', async () => {
+    // Step 3: Add product to cart
+    const step3 = await this.executeStep('Add product to cart', async () => {
+      const step1Data = JSON.parse(step1.details || '{}');
       const step2Data = JSON.parse(step2.details || '{}');
       
-      // Get full product details using Company API
-      const response = await this.client.getProducts({ page: 1, per_page: 50 });
-      
-      // Handle different response structures
-      const productsArray = Array.isArray(response) 
-        ? response 
-        : (response as any).products || (response as any).data || [];
-      
-      const product = productsArray.find((p: any) => p.id === step2Data.productId);
-      
-      if (!product) {
-        throw new Error(`Product ${step2Data.productId} not found`);
-      }
-      
-      // Try multiple possible name fields
-      const productName = product.name || 
-                         product.title || 
-                         product.product_name || 
-                         product.displayName ||
-                         `Product ${product.id}`;
-      
-      console.log('[Test Runner] Product details:', { 
-        id: product.id, 
-        name: productName,
-        rawProduct: product 
+      const cart = await this.client.addToCart(step1Data.cartToken, {
+        product_id: step2Data.productId,
+        quantity: 1,
       });
       
+      console.log('[Test Runner] Product added to cart:', cart);
+      
       return { 
-        productId: product.id,
-        productName: productName,
-        price: product.price || product.amount || 'N/A',
-        available: true 
+        cartToken: step1Data.cartToken, 
+        productId: step2Data.productId,
+        productName: step2Data.productName,
+        cartUpdated: true 
       };
     });
     result.steps.push(step3);
 
     if (step3.status === 'failed') throw new Error(step3.error);
 
-    // Step 4: Simulate purchase readiness check
-    const step4 = await this.executeStep('Validate purchase prerequisites', async () => {
-      let step3Data: any = {};
+    // Step 4: Record checkout started event (for analytics)
+    const step4 = await this.executeStep('Record checkout started event', async () => {
+      const step1Data = JSON.parse(step1.details || '{}');
       
-      try {
-        step3Data = JSON.parse(step3.details || '{}');
-        console.log('[Test Runner] Step 3 data:', step3Data);
-      } catch (e) {
-        console.error('[Test Runner] Failed to parse step3 details:', e);
-        throw new Error('Failed to parse product data from previous step');
-      }
+      // Get company subdomain from client
+      const companySubdomain = (this.client as any).companySubdomain;
       
-      // Verify we have all necessary data for a purchase
-      const hasProductId = !!step3Data.productId;
-      const hasProductName = !!step3Data.productName && step3Data.productName.trim() !== '';
+      // Build metadata for the event
+      const metadata: any = {
+        fluid_shop: companySubdomain,
+        fluid_session: step1Data.fluidSession || `fs_test_${Date.now()}`,
+        fluid_locale: 'en_US',
+      };
       
-      console.log('[Test Runner] Product validation:', { 
-        hasProductId, 
-        hasProductName,
-        productId: step3Data.productId,
-        productName: step3Data.productName,
-        productNameType: typeof step3Data.productName
-      });
-      
-      if (!hasProductId) {
-        throw new Error(`Missing product ID`);
-      }
-      
-      // Product name is nice to have but not required for API validation
-      const finalProductName = hasProductName ? step3Data.productName : `Product ${step3Data.productId}`;
-      
-      console.log('[Test Runner] Using product name:', finalProductName);
+      const eventResponse = await this.client.recordCheckoutStarted(step1Data.cartToken, metadata);
       
       return { 
-        purchaseReady: true,
-        productValidated: true,
-        testPassed: true,
-        productId: step3Data.productId,
-        productName: finalProductName,
-        note: 'Product purchase flow validated successfully (simulation mode - actual cart/checkout APIs not available)'
+        eventRecorded: true, 
+        requestUuid: eventResponse.metadata?.request_uuid,
+        timestamp: eventResponse.metadata?.timestamp
       };
     });
     result.steps.push(step4);
 
-    if (step4.status === 'failed') throw new Error(step4.error);
+    if (step4.status === 'failed') {
+      // Don't fail the entire test if analytics event fails - just log warning
+      console.warn('[Test Runner] ⚠️  Checkout started event failed, but continuing with purchase flow');
+    }
 
-    // Extract final data from step 4
-    const step4Data = step4.details ? JSON.parse(step4.details) : {};
+    // Step 5: Complete product purchase
+    const step5 = await this.executeStep('Complete product purchase', async () => {
+      const step3Data = JSON.parse(step3.details || '{}');
+      
+      const order = await this.client.processCheckout(step3Data.cartToken, {});
+      
+      return { 
+        orderId: order.id || order.order_id, 
+        orderToken: order.token,
+        productId: step3Data.productId,
+        productName: step3Data.productName
+      };
+    });
+    result.steps.push(step5);
+
+    if (step5.status === 'failed') throw new Error(step5.error);
+
+    // Extract final data from step 5
+    const step5Data = step5.details ? JSON.parse(step5.details) : {};
     result.metadata = { 
-      productId: step4Data.productId,
-      productName: step4Data.productName,
-      note: 'Test validates API connectivity and product availability. Full cart/checkout flow requires Fluid UI.'
+      orderId: step5Data.orderId,
+      productId: step5Data.productId,
+      productName: step5Data.productName
     };
   }
 
@@ -247,11 +236,15 @@ export class TestRunner {
       const session = await this.client.createSession();
       console.log('[Test Runner] Session response:', session);
       
-      // Extract cart token from various possible fields
+      // Extract cart token and session ID from various possible fields
       const cartToken = (session as any).cart_token || 
                        (session as any).token || 
                        (session as any).cartToken ||
                        (session as any).id;
+      
+      const fluidSession = (session as any).fluid_session || 
+                          (session as any).session_id || 
+                          (session as any).sessionId;
       
       if (!cartToken) {
         console.error('[Test Runner] No cart token found in session response:', session);
@@ -259,7 +252,8 @@ export class TestRunner {
       }
       
       console.log('[Test Runner] Extracted cart token:', cartToken);
-      return { cartToken };
+      console.log('[Test Runner] Extracted fluid session:', fluidSession);
+      return { cartToken, fluidSession };
     });
     result.steps.push(step1);
 
@@ -306,6 +300,35 @@ export class TestRunner {
 
     if (step3.status === 'failed') throw new Error(step3.error);
 
+    // Step 3b: Record checkout started event (for analytics)
+    const step3b = await this.executeStep('Record checkout started event', async () => {
+      const step1Data = JSON.parse(step1.details || '{}');
+      
+      // Get company subdomain from client
+      const companySubdomain = (this.client as any).companySubdomain;
+      
+      // Build metadata for the event
+      const metadata: any = {
+        fluid_shop: companySubdomain,
+        fluid_session: step1Data.fluidSession || `fs_test_${Date.now()}`,
+        fluid_locale: 'en_US',
+      };
+      
+      const eventResponse = await this.client.recordCheckoutStarted(step1Data.cartToken, metadata);
+      
+      return { 
+        eventRecorded: true, 
+        requestUuid: eventResponse.metadata?.request_uuid,
+        timestamp: eventResponse.metadata?.timestamp
+      };
+    });
+    result.steps.push(step3b);
+
+    if (step3b.status === 'failed') {
+      // Don't fail the entire test if analytics event fails - just log warning
+      console.warn('[Test Runner] ⚠️  Checkout started event failed, but continuing with purchase flow');
+    }
+
     // Step 4: Complete enrollment checkout
     const step4 = await this.executeStep('Complete enrollment purchase', async () => {
       const step3Data = JSON.parse(step3.details || '{}');
@@ -327,11 +350,15 @@ export class TestRunner {
       const session = await this.client.createSession();
       console.log('[Test Runner] Session response:', session);
       
-      // Extract cart token from various possible fields
+      // Extract cart token and session ID from various possible fields
       const cartToken = (session as any).cart_token || 
                        (session as any).token || 
                        (session as any).cartToken ||
                        (session as any).id;
+      
+      const fluidSession = (session as any).fluid_session || 
+                          (session as any).session_id || 
+                          (session as any).sessionId;
       
       if (!cartToken) {
         console.error('[Test Runner] No cart token found in session response:', session);
@@ -339,7 +366,8 @@ export class TestRunner {
       }
       
       console.log('[Test Runner] Extracted cart token:', cartToken);
-      return { cartToken };
+      console.log('[Test Runner] Extracted fluid session:', fluidSession);
+      return { cartToken, fluidSession };
     });
     result.steps.push(step1);
 
@@ -388,6 +416,35 @@ export class TestRunner {
     result.steps.push(step3);
 
     if (step3.status === 'failed') throw new Error(step3.error);
+
+    // Step 3b: Record checkout started event (for analytics)
+    const step3b = await this.executeStep('Record checkout started event', async () => {
+      const step1Data = JSON.parse(step1.details || '{}');
+      
+      // Get company subdomain from client
+      const companySubdomain = (this.client as any).companySubdomain;
+      
+      // Build metadata for the event
+      const metadata: any = {
+        fluid_shop: companySubdomain,
+        fluid_session: step1Data.fluidSession || `fs_test_${Date.now()}`,
+        fluid_locale: 'en_US',
+      };
+      
+      const eventResponse = await this.client.recordCheckoutStarted(step1Data.cartToken, metadata);
+      
+      return { 
+        eventRecorded: true, 
+        requestUuid: eventResponse.metadata?.request_uuid,
+        timestamp: eventResponse.metadata?.timestamp
+      };
+    });
+    result.steps.push(step3b);
+
+    if (step3b.status === 'failed') {
+      // Don't fail the entire test if analytics event fails - just log warning
+      console.warn('[Test Runner] ⚠️  Checkout started event failed, but continuing with purchase flow');
+    }
 
     // Step 4: Complete subscription checkout
     const step4 = await this.executeStep('Complete subscription purchase', async () => {

@@ -138,10 +138,11 @@ export class FluidApiClient {
   }
 
   /**
-   * Create a session to get a cart token
+   * Create a session to get a cart token and session ID
    * POST https://{company}.fluid.app/api/public/v1/session
    * 
    * Company context is in the subdomain URL
+   * Returns: { cart_token, fluid_session, ... }
    */
   async createSession() {
     console.log(`🎫 Creating session for company: ${this.companySubdomain}`);
@@ -153,12 +154,19 @@ export class FluidApiClient {
     console.log(`📤 Sending session request to: https://${this.companySubdomain}.fluid.app/api/public/v1/session`);
     
     // Company context is in the URL subdomain, so we just need an empty POST
-    const result = await this.request('/session', 'public', {
+    const result = await this.request<any>('/session', 'public', {
       method: 'POST',
       body: JSON.stringify({}),
     });
     
     console.log(`✅ Session created:`, result);
+    
+    // Extract and log the important fields
+    const cartToken = result.cart_token || result.token || result.cartToken || result.id;
+    const fluidSession = result.fluid_session || result.session_id || result.sessionId;
+    
+    console.log(`📋 Extracted: cart_token=${cartToken}, fluid_session=${fluidSession}`);
+    
     return result;
   }
 
@@ -185,6 +193,56 @@ export class FluidApiClient {
    */
   async getCartInfo(cartToken: string) {
     return this.request(`/commerce/carts/${cartToken}/cart_info`, 'public');
+  }
+
+  /**
+   * Record checkout started event
+   * POST /api/public/v2025-06/events/checkout/started
+   * 
+   * This tracks when a customer begins the checkout process for analytics
+   */
+  async recordCheckoutStarted(cartToken: string, metadata: {
+    fluid_shop: string;
+    fluid_session: string;
+    fluid_locale?: string;
+    fluid_journey?: string;
+    attribution?: {
+      email?: string;
+      username?: string;
+      shared_guid?: string;
+      fluid_rep_id?: string;
+      external_id?: string;
+    };
+  }) {
+    console.log(`📊 Recording checkout started event for cart: ${cartToken}`);
+    
+    // Use v2025-06 API version by building full URL
+    const url = `https://${this.companySubdomain}.fluid.app/api/public/v2025-06/events/checkout/started`;
+    
+    console.log(`📤 Sending checkout started event to: ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cart_token: cartToken,
+        metadata,
+      }),
+    });
+
+    console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Checkout started event failed: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`Checkout started event failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const jsonResponse = await response.json();
+    console.log(`✅ Checkout started event recorded:`, jsonResponse);
+    return jsonResponse;
   }
 
   /**
