@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "Micah Baird",
   "license": "ISC",
-  "packageManager": "pnpm@10.17.1",
+  "packageManager": "pnpm@9.12.3",
   "devDependencies": {
     "typescript": "^5.2.2"
   }
