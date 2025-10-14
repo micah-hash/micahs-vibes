@@ -78,8 +78,18 @@ export class TestRunner {
     // Step 1: Verify API Connection
     const step1 = await this.executeStep('Verify Fluid API connection', async () => {
       // Test that we can reach the Fluid API with our auth token
-      const products = await this.client.getProducts({ page: 1, per_page: 1 });
-      return { connected: true, productsAvailable: products && products.length > 0 };
+      const response = await this.client.getProducts({ page: 1, per_page: 1 });
+      
+      // Handle different response structures
+      const productsArray = Array.isArray(response) 
+        ? response 
+        : (response as any).products || (response as any).data || [];
+      
+      return { 
+        connected: true, 
+        productsAvailable: productsArray && productsArray.length > 0,
+        apiResponding: true 
+      };
     });
     result.steps.push(step1);
 
@@ -90,27 +100,36 @@ export class TestRunner {
       let productId: string;
       let productName: string;
 
+      // Fetch products from API
+      const response = await this.client.getProducts({ page: 1, per_page: 50 });
+      
+      // Handle different response structures
+      const productsArray = Array.isArray(response) 
+        ? response 
+        : (response as any).products || (response as any).data || [];
+      
+      console.log('[Test Runner] Products response type:', typeof response);
+      console.log('[Test Runner] Products array length:', productsArray.length);
+
+      if (!productsArray || productsArray.length === 0) {
+        throw new Error('No products available in catalog');
+      }
+
       // If specific products are configured, validate them
       if (this.settings?.selectedProductIds && this.settings.selectedProductIds.length > 0) {
         // Pick a random product from the selected ones
         const randomIndex = Math.floor(Math.random() * this.settings.selectedProductIds.length);
         productId = this.settings.selectedProductIds[randomIndex];
         
-        // Fetch all products to find the name
-        const products = await this.client.getProducts({ page: 1, per_page: 50 });
-        const product = products.find((p: any) => p.id === productId);
+        const product = productsArray.find((p: any) => p.id === productId);
         productName = product?.name || 'Unknown Product';
       } else {
-        // Fallback: fetch and use first available product
-        const products = await this.client.getProducts({ page: 1, per_page: 5 });
-        if (!products || products.length === 0) {
-          throw new Error('No products available');
-        }
-        productId = products[0].id;
-        productName = products[0].name || 'Product';
+        // Use first available product
+        productId = productsArray[0].id;
+        productName = productsArray[0].name || 'Product';
       }
 
-      return { productId, productName, validated: true };
+      return { productId, productName, validated: true, totalProducts: productsArray.length };
     });
     result.steps.push(step2);
 
@@ -121,8 +140,14 @@ export class TestRunner {
       const step2Data = JSON.parse(step2.details || '{}');
       
       // Get full product details using Company API
-      const products = await this.client.getProducts({ page: 1, per_page: 50 });
-      const product = products.find((p: any) => p.id === step2Data.productId);
+      const response = await this.client.getProducts({ page: 1, per_page: 50 });
+      
+      // Handle different response structures
+      const productsArray = Array.isArray(response) 
+        ? response 
+        : (response as any).products || (response as any).data || [];
+      
+      const product = productsArray.find((p: any) => p.id === step2Data.productId);
       
       if (!product) {
         throw new Error(`Product ${step2Data.productId} not found`);
