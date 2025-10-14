@@ -28,8 +28,8 @@ export class FluidApiClient {
       // Enrollment packs use api.fluid.app (not subdomain)
       baseUrl = `https://api.fluid.app/api`;
     } else if (apiVersion === 'public') {
-      // Public SDK API for commerce operations
-      baseUrl = `https://api.fluid.app/api/public/v2025-06`;
+      // Public SDK API for commerce operations - uses company subdomain!
+      baseUrl = `https://${this.companySubdomain}.fluid.app/api/public/v2025-06`;
     } else {
       baseUrl = `https://${this.companySubdomain}.fluid.app/api`;
     }
@@ -138,9 +138,9 @@ export class FluidApiClient {
 
   /**
    * Create a session to get a cart token
-   * POST /api/public/v2025-06/session
+   * POST https://{company}.fluid.app/api/public/v2025-06/session
    * 
-   * Note: Fluid Public API may expect company context in headers
+   * Company context is in the subdomain URL
    */
   async createSession() {
     console.log(`🎫 Creating session for company: ${this.companySubdomain}`);
@@ -149,22 +149,12 @@ export class FluidApiClient {
       throw new Error('Company subdomain is required to create a session');
     }
     
-    // Ensure subdomain is lowercase and trimmed
-    const subdomain = this.companySubdomain.toLowerCase().trim();
+    console.log(`📤 Sending session request to: https://${this.companySubdomain}.fluid.app/api/public/v2025-06/session`);
     
-    console.log(`📤 Sending session request with subdomain: "${subdomain}"`);
-    
-    // Try both body and header approaches for company context
+    // Company context is in the URL subdomain, so we just need an empty POST
     const result = await this.request('/session', 'public', {
       method: 'POST',
-      headers: {
-        'X-Company-Subdomain': subdomain,
-        'Fluid-Company': subdomain,
-      },
-      body: JSON.stringify({
-        company_subdomain: subdomain,
-        subdomain: subdomain,
-      }),
+      body: JSON.stringify({}),
     });
     
     console.log(`✅ Session created:`, result);
