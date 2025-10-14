@@ -77,8 +77,11 @@ export class TestRunner {
   private async runProductPurchaseTest(result: TestResult): Promise<void> {
     // Step 1: Verify SDK and API connection
     const step1 = await this.executeStep('Verify Fluid SDK and API connection', async () => {
-      // Check if SDK is available
-      const hasSDK = this.client.isSDKAvailable();
+      // Wait for SDK to be available (give it up to 10 seconds)
+      console.log('[Test Runner] Checking for Fluid SDK...');
+      const sdkReady = await this.client.waitForSDK(10000);
+      
+      console.log(`[Test Runner] SDK availability: ${sdkReady}`);
       
       // Test that we can reach the Fluid API with our auth token
       const response = await this.client.getProducts({ page: 1, per_page: 1 });
@@ -92,8 +95,11 @@ export class TestRunner {
         connected: true, 
         productsAvailable: productsArray && productsArray.length > 0,
         apiResponding: true,
-        sdkAvailable: hasSDK,
-        mode: hasSDK ? 'full-e2e-with-sdk' : 'validation-only'
+        sdkAvailable: sdkReady,
+        mode: sdkReady ? 'full-e2e-with-sdk' : 'validation-only',
+        note: sdkReady 
+          ? 'Fluid SDK loaded successfully' 
+          : 'Fluid SDK not available after 10s wait - falling back to validation mode'
       };
     });
     result.steps.push(step1);

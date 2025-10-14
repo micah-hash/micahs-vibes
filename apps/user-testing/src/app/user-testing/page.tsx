@@ -71,26 +71,47 @@ export default function EmbedPage() {
   const loadFluidSDK = (companyId: string) => {
     // Check if SDK is already loaded
     if (document.getElementById('fluid-cdn-script')) {
-      console.log('[Fluid SDK] Already loaded');
+      console.log('[Fluid SDK] Script tag already exists');
+      
+      // Check if the SDK object is actually available
+      if ((window as any).FairShareSDK) {
+        console.log('[Fluid SDK] SDK object is available');
+      } else {
+        console.warn('[Fluid SDK] Script tag exists but SDK object not available yet');
+      }
       return;
     }
 
     console.log(`[Fluid SDK] Loading SDK for company: ${companyId}`);
+    console.log(`[Fluid SDK] SDK URL: https://assets.fluid.app/scripts/fluid-sdk/latest/web-widgets/index.js`);
     
     const script = document.createElement('script');
     script.id = 'fluid-cdn-script';
     script.src = 'https://assets.fluid.app/scripts/fluid-sdk/latest/web-widgets/index.js';
     script.setAttribute('data-fluid-shop', companyId);
+    script.async = true;
     
     script.onload = () => {
-      console.log('[Fluid SDK] Successfully loaded');
+      console.log('[Fluid SDK] ✅ Script loaded successfully');
+      
+      // Check if SDK is actually available
+      setTimeout(() => {
+        if ((window as any).FairShareSDK) {
+          console.log('[Fluid SDK] ✅ SDK object is now available');
+          console.log('[Fluid SDK] Available methods:', Object.keys((window as any).FairShareSDK));
+        } else {
+          console.error('[Fluid SDK] ❌ Script loaded but SDK object not available');
+        }
+      }, 500);
     };
     
-    script.onerror = () => {
-      console.error('[Fluid SDK] Failed to load');
+    script.onerror = (error) => {
+      console.error('[Fluid SDK] ❌ Failed to load script:', error);
+      console.error('[Fluid SDK] Check if the URL is correct and accessible');
     };
     
     document.head.appendChild(script);
+    console.log('[Fluid SDK] Script tag added to document head');
   };
 
   const loadMockData = () => {
