@@ -88,6 +88,7 @@ export default function EmbedPage() {
     const script = document.createElement('script');
     script.id = 'fluid-cdn-script';
     script.src = 'https://assets.fluid.app/scripts/fluid-sdk/latest/web-widgets/index.js';
+    script.type = 'module'; // Required for ES6 modules
     script.setAttribute('data-fluid-shop', companyId);
     script.async = true;
     
