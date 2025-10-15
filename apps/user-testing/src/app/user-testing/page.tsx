@@ -15,6 +15,8 @@ export default function EmbedPage() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [analytics, setAnalytics] = useState<TestAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
+  const [runningTestId, setRunningTestId] = useState<TestType | null>(null);
+  const [testProgress, setTestProgress] = useState<string>('');
   const [emailRecipients, setEmailRecipients] = useState<string>('');
   const [savedEmailRecipients, setSavedEmailRecipients] = useState<string>('');
   const [editingTest, setEditingTest] = useState<TestConfig | null>(null);
@@ -358,6 +360,8 @@ export default function EmbedPage() {
 
     try {
       setLoading(true);
+      setRunningTestId(testId);
+      setTestProgress('Initializing test...');
       
       // Get test settings
       const testConfig = testConfigs.find(c => c.id === testId);
@@ -371,8 +375,10 @@ export default function EmbedPage() {
       // For product purchase with SDK, run client-side
       if (isProductPurchase && sdkAvailable) {
         console.log('[Run Test] Running client-side test with SDK');
+        setTestProgress('Running test with Fluid SDK...');
         const result = await runClientSideTest(testId, testConfig?.settings);
         
+        setTestProgress('Saving results...');
         // Save result
         await fetch('/api/tests/results', {
           method: 'POST',
@@ -380,14 +386,17 @@ export default function EmbedPage() {
           body: JSON.stringify({ companyId, result }),
         });
 
+        setTestProgress('Loading updated results...');
         // Reload results and analytics
         await loadResults(companyId);
         await loadAnalytics(companyId);
 
+        setTestProgress('');
         alert(`Test completed: ${result.status}`);
       } else {
         // Run server-side test
         console.log('[Run Test] Running server-side test');
+        setTestProgress('Executing test...');
         const response = await fetch('/api/tests/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -402,6 +411,7 @@ export default function EmbedPage() {
         if (response.ok) {
           const result = await response.json();
           
+          setTestProgress('Saving results...');
           // Save result
           await fetch('/api/tests/results', {
             method: 'POST',
@@ -409,20 +419,26 @@ export default function EmbedPage() {
             body: JSON.stringify({ companyId, result }),
           });
 
+          setTestProgress('Loading updated results...');
           // Reload results and analytics
           await loadResults(companyId);
           await loadAnalytics(companyId);
 
+          setTestProgress('');
           alert(`Test completed: ${result.status}`);
         } else {
+          setTestProgress('');
           alert('Test execution failed');
         }
       }
     } catch (error) {
       console.error('Failed to run test:', error);
+      setTestProgress('');
       alert('Failed to run test');
     } finally {
       setLoading(false);
+      setRunningTestId(null);
+      setTestProgress('');
     }
   };
 
@@ -560,6 +576,49 @@ export default function EmbedPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 p-6">
+      {/* Loading Modal */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 relative overflow-hidden">
+            {/* Animated gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+            
+            <div className="relative">
+              {/* Spinner */}
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Status */}
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {runningTestId && testConfigs.find(c => c.id === runningTestId)?.name}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {testProgress || 'Processing...'}
+                </p>
+                
+                {/* Progress bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  This may take a few moments...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 mb-8 overflow-hidden">
@@ -942,9 +1001,19 @@ export default function EmbedPage() {
                         <button
                           onClick={() => runTest(config.id)}
                           disabled={loading}
-                          className="ml-6 relative bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                          className="ml-6 relative bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center gap-2"
                         >
-                          Run Now
+                          {runningTestId === config.id ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Running...
+                            </>
+                          ) : (
+                            'Run Now'
+                          )}
                         </button>
                       </div>
                     </div>
