@@ -361,10 +361,11 @@ export default function EmbedPage() {
     try {
       setLoading(true);
       setRunningTestId(testId);
-      setTestProgress('Initializing test...');
       
       // Get test settings
       const testConfig = testConfigs.find(c => c.id === testId);
+      const testName = testConfig?.name || 'test';
+      setTestProgress(`Preparing ${testName.toLowerCase()}...`);
       
       // Check if this is a product purchase test and SDK is available
       const isProductPurchase = testId === 'product-purchase';
@@ -375,7 +376,6 @@ export default function EmbedPage() {
       // For product purchase with SDK, run client-side
       if (isProductPurchase && sdkAvailable) {
         console.log('[Run Test] Running client-side test with SDK');
-        setTestProgress('Running test with Fluid SDK...');
         const result = await runClientSideTest(testId, testConfig?.settings);
         
         setTestProgress('Saving results...');
@@ -396,7 +396,8 @@ export default function EmbedPage() {
       } else {
         // Run server-side test
         console.log('[Run Test] Running server-side test');
-        setTestProgress('Executing test...');
+        const testName = testConfig?.name || 'test';
+        setTestProgress(`Running ${testName.toLowerCase()}...`);
         const response = await fetch('/api/tests/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -453,7 +454,10 @@ export default function EmbedPage() {
     });
     
     console.log('[Client-Side Test] Creating test runner');
-    const runner = new TestRunner(client, settings);
+    const runner = new TestRunner(client, settings, (progress) => {
+      // Update progress in real-time
+      setTestProgress(progress);
+    });
     
     console.log('[Client-Side Test] Running test...');
     const result = await runner.runTest(testId);

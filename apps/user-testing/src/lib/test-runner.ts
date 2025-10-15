@@ -4,10 +4,12 @@ import { FluidApiClient } from './fluid-api';
 export class TestRunner {
   private client: FluidApiClient;
   private settings?: TestSettings;
+  private onProgress?: (message: string) => void;
 
-  constructor(client: FluidApiClient, settings?: TestSettings) {
+  constructor(client: FluidApiClient, settings?: TestSettings, onProgress?: (message: string) => void) {
     this.client = client;
     this.settings = settings;
+    this.onProgress = onProgress;
   }
 
   async runTest(testType: TestType): Promise<TestResult> {
@@ -592,6 +594,10 @@ export class TestRunner {
 
     try {
       console.log(`[Test Runner] Starting step: ${name}`);
+      // Update progress in UI
+      if (this.onProgress) {
+        this.onProgress(name);
+      }
       const result = await fn();
       step.duration = Date.now() - startTime;
       
