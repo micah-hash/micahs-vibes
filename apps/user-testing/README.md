@@ -70,21 +70,45 @@ Test with company context:
 http://localhost:3001/user-testing?company_id=test-company&token=test-token
 ```
 
+**Testing Scheduled Tests:**
+
+1. Set up a test with a 30-minute schedule
+2. Save the configuration
+3. Manually trigger the cron job:
+   ```
+   http://localhost:3001/api/cron/trigger
+   ```
+4. Check console logs to see the execution
+
+See `SCHEDULING.md` for detailed information about how scheduled tests work.
+
 ### Production Deployment
 
-1. Deploy to Vercel/Netlify:
+1. **Set Environment Variables** in Vercel:
+   - `CRON_SECRET` - Generate a secure random string (e.g., `openssl rand -base64 32`)
+   - `NEXT_PUBLIC_APP_URL` - Your app URL (e.g., `https://your-app.vercel.app`)
+   - Email API keys (optional)
+
+2. **Deploy to Vercel**:
    ```bash
    pnpm build
    vercel --prod
    ```
 
-2. Register as a Fluid Droplet (see `FLUID-DROPLET.md`)
+3. **Verify Cron Setup**:
+   - Go to Vercel Dashboard → Your Project → Cron Jobs
+   - You should see a cron job for `/api/cron` scheduled every 15 minutes
+   - Check logs after deployment to verify execution
 
-3. Configure in Fluid:
+4. **Register as a Fluid Droplet** (see `FLUID-DROPLET.md`)
+
+5. **Configure in Fluid**:
    - Enable desired tests
    - Set schedules
    - Add email recipients
    - Save configuration
+
+**Note**: Scheduled tests will automatically execute based on their configured intervals. The cron job runs every 15 minutes to check for due tests.
 
 ## 📁 Project Structure
 
@@ -92,21 +116,24 @@ http://localhost:3001/user-testing?company_id=test-company&token=test-token
 src/
 ├── app/
 │   ├── api/
+│   │   ├── cron/
+│   │   │   ├── route.ts     # Cron job executor (runs scheduled tests)
+│   │   │   └── trigger/     # Dev-only manual cron trigger
 │   │   └── tests/
 │   │       ├── run/          # Execute tests
 │   │       ├── config/       # Save/load configuration
 │   │       ├── results/      # Store test results
-│   │       ├── schedule/     # Manage schedules
+│   │       ├── schedule/     # Manage test schedules
 │   │       ├── analytics/    # Calculate analytics
 │   │       └── notify/       # Send email notifications
-│   ├── embed/
+│   ├── user-testing/
 │   │   ├── page.tsx         # Main droplet UI
-│   │   └── layout.tsx       # Embed layout
+│   │   └── layout.tsx       # Droplet layout
 │   └── page.tsx             # Landing page
 ├── lib/
 │   ├── fluid-api.ts         # Fluid API client
 │   ├── test-runner.ts       # Test execution engine
-│   ├── scheduler.ts         # Test scheduling service
+│   ├── test-data-store.ts   # In-memory data store
 │   └── email-notifications.ts # Email generation
 └── types/
     └── test-config.ts       # TypeScript types
@@ -117,9 +144,13 @@ src/
 ### Environment Variables
 
 ```env
+# Required
+CRON_SECRET=your_secure_random_string  # For Vercel Cron authentication
 NEXT_PUBLIC_APP_URL=https://your-domain.com
-RESEND_API_KEY=your_resend_api_key  # Optional: for email
-SENDGRID_API_KEY=your_sendgrid_key  # Optional: alternative email
+
+# Optional: Email notifications
+RESEND_API_KEY=your_resend_api_key
+SENDGRID_API_KEY=your_sendgrid_key
 ```
 
 ### Email Integration
@@ -211,14 +242,22 @@ Load/save test configuration.
 ### GET/POST /api/tests/results
 Retrieve/store test results.
 
-### POST /api/tests/schedule
-Schedule recurring tests.
+### GET/POST /api/tests/schedule
+Schedule recurring tests and manage schedules.
 
 ### GET /api/tests/analytics
 Get analytics and insights.
 
 ### POST /api/tests/notify
 Send email notifications.
+
+### GET /api/cron
+Execute scheduled tests (called by Vercel Cron every 15 minutes).
+
+### GET /api/cron/trigger
+**Development only** - Manually trigger cron execution for testing.
+
+For detailed API documentation, see `SCHEDULING.md`.
 
 ## 🐛 Troubleshooting
 
@@ -229,8 +268,12 @@ Send email notifications.
 
 **Schedules not working?**
 - Ensure configuration is saved
-- Check scheduler logs
-- Verify auth token is valid
+- Verify tests are enabled with a schedule
+- Check that `nextRun` time shows in the UI
+- Verify cron job is running (check Vercel logs)
+- In development, manually trigger: `http://localhost:3001/api/cron/trigger`
+- Verify auth token is still valid
+- See `SCHEDULING.md` for detailed troubleshooting
 
 **Emails not sending?**
 - Configure email service (Resend/SendGrid)

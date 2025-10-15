@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import TeamMember from './components/TeamMember';
-import TabbedSection from './components/TabbedSection';
 import Lightbox from './components/Lightbox';
 
 export default function Home() {
@@ -164,8 +162,60 @@ export default function Home() {
               {/* Tab Content Placeholder */}
               <div className="tab-content" style={{ marginTop: '20px', minHeight: '200px' }}>
                 {chaseActiveTab === 'infra' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Infrastructure Monitoring Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Infrastructure Monitoring</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>📧</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Email Server Monitoring
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check MFA email server for bounced email rates to ensure deliverability
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>📊</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Engagement Tracking
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Monitor opened email rates to track user engagement and delivery success
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Chase/MFA2.png"
                       alt="Multi-factor authentication system interface"
                       width="320"
@@ -253,11 +303,80 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
                 {chaseActiveTab === 'fairshare' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Fair Share Monitoring Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Fair Share Verification</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>📋</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Daily Order Review
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Review all orders for Zallevo and Thermomix from the previous day
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🗺️</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Order Journey Tracking
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check order journey for each transaction to ensure proper flow and attribution
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>✓</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Sponsor Verification
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Verify that sponsors are correctly set to customers for accurate commission tracking
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Chase/order-journey.png"
                       alt="Order Journey Details showing customer activity timeline"
                       className="thumb"
@@ -341,6 +460,7 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
               </div>
@@ -444,8 +564,86 @@ export default function Home() {
               {/* Tab Content Placeholder */}
               <div className="tab-content" style={{ marginTop: '20px', minHeight: '200px' }}>
                 {robActiveTab === 'data' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Data Integrity Workflow Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Data Integrity Workflow</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🔍</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Sentry Monitoring
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check Sentry for failed syncing jobs to identify integration issues early
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>✓</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Random Order Testing
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Perform random testing for orders in Fluid and cross-reference with back office to ensure proper synchronization
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>⚙️</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Alert Refinement
+                              <span style={{
+                                marginLeft: '8px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.5), rgba(249, 115, 22, 0.5))',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                color: 'rgba(255, 255, 255, 0.95)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)'
+                              }}>REFINING</span>
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              While Sentry has caught several issues, some alerts didn&apos;t trigger as expected. Reviewing Sentry placements with Chris to refine the alert system and catch edge cases
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Rob/Data/Order_list_in_fluid.png"
                       alt="Order list view in Fluid system with comprehensive order tracking"
                       width="320"
@@ -661,49 +859,129 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
                 {robActiveTab === 'droplets' && (
-                  <div className="shots">
-                    <img 
-                      src="/team/Rob/Droplets/Sentrybot_droplets.png"
-                      alt="Sentrybot droplets monitoring and management interface"
-                      width="320"
-                      height="200"
-                      className="thumb"
-                      onClick={() => {
-                        const lightbox = document.getElementById('lightbox');
-                        if (lightbox) {
-                          const event = new CustomEvent('openLightbox', {
-                            detail: { 
-                              src: "/team/Rob/Droplets/Sentrybot_droplets.png", 
-                              alt: "Sentrybot droplets monitoring and management interface", 
-                              screenshots: [
-                                {
-                                  src: "/team/Rob/Droplets/Sentrybot_droplets.png",
-                                  alt: "Sentrybot droplets monitoring and management interface",
-                                  thumb: "/team/Rob/Droplets/Sentrybot_droplets.png"
-                                }
-                              ],
-                              index: 0
-                            }
-                          });
-                          window.dispatchEvent(event);
-                          lightbox.hidden = false;
-                          requestAnimationFrame(() => {
-                            lightbox.classList.add('open');
-                          });
-                        }
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                      }}
-                    />
+                  <div>
+                    {/* Daily Monitoring Workflow Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Daily Monitoring Workflow</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🔍</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Sentry Monitoring
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check Sentry for timed-out API calls to catch issues before they impact users
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>⚡</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Health Checks
+                              <span style={{
+                                marginLeft: '8px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(147, 51, 234, 0.5))',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                color: 'rgba(255, 255, 255, 0.95)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)'
+                              }}>IN PROGRESS</span>
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Building a system to proactively ping API endpoints and test endpoint health
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🛡️</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Marketplace Patrol
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check marketplace to ensure there are no shell droplets affecting the system
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshot */}
+                    <div className="shots">
+                      <img 
+                        src="/team/Rob/Droplets/Sentrybot_droplets.png"
+                        alt="Sentrybot droplets monitoring and management interface"
+                        width="320"
+                        height="200"
+                        className="thumb"
+                        onClick={() => {
+                          const lightbox = document.getElementById('lightbox');
+                          if (lightbox) {
+                            const event = new CustomEvent('openLightbox', {
+                              detail: { 
+                                src: "/team/Rob/Droplets/Sentrybot_droplets.png", 
+                                alt: "Sentrybot droplets monitoring and management interface", 
+                                screenshots: [
+                                  {
+                                    src: "/team/Rob/Droplets/Sentrybot_droplets.png",
+                                    alt: "Sentrybot droplets monitoring and management interface",
+                                    thumb: "/team/Rob/Droplets/Sentrybot_droplets.png"
+                                  }
+                                ],
+                                index: 0
+                              }
+                            });
+                            window.dispatchEvent(event);
+                            lightbox.hidden = false;
+                            requestAnimationFrame(() => {
+                              lightbox.classList.add('open');
+                            });
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.02)';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -871,8 +1149,76 @@ export default function Home() {
               {/* Tab Content */}
               <div className="tab-content" style={{ marginTop: '20px', minHeight: '200px' }}>
                 {kevinActiveTab === 'mobile' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Mobile Analytics & Monitoring Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Mobile Analytics & Error Monitoring</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>📊</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              PostHog Analytics
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Track daily user counts, monthly unique users, and platform analytics (Android vs iOS) to understand app usage patterns
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🔍</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Sentry Error Reporting
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Comprehensive error tracking with frequency analysis, first occurrence timestamps, and critical bug detection
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🎫</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Bug Triage
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Frequently occurring errors are ticketed for investigation to determine if they&apos;re false alarms or require fixes
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Kevin/Mobile/Errors_and_Outages.png"
                       alt="Mobile error handling and outage management interface"
                       width="320"
@@ -960,23 +1306,160 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
 
                 {kevinActiveTab === 'desktop' && (
-                  <div style={{ 
-                    textAlign: 'center', 
-                    padding: '40px 20px', 
-                    color: 'var(--muted)',
-                    fontSize: '15px'
-                  }}>
-                    Screenshots coming soon for desktop applications
+                  <div>
+                    {/* Desktop Testing Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Desktop Application Testing</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>👤</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Manual Human Testing
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              No PostHog analytics setup - testing relies on hands-on verification
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🔐</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Sign-In Flow Testing
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Verify authentication and login processes work correctly
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>✓</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Full Flow Verification
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Check all user flows and functionality to ensure everything works as expected
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: '20px', 
+                      color: 'var(--muted)',
+                      fontSize: '15px'
+                    }}>
+                      Screenshots coming soon for desktop applications
+                    </div>
                   </div>
                 )}
 
                 {kevinActiveTab === 'themes' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Theme Performance Monitoring Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Theme Performance & Quality</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>⚡</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Document Delivery Time
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Monitor backend performance including database queries, code assembly from sections, and function execution times
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🎯</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Lighthouse Scores
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Track performance, SEO, and accessibility metrics to identify improvement opportunities
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🎨</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Visual Regression Testing
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Ensure code changes don&apos;t break existing theme styles (e.g., prevented issues like the Thermomix page break)
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Kevin/Themes/Google_cloud_themes.png"
                       alt="Google Cloud themes interface showing customization options"
                       width="320"
@@ -1123,6 +1606,7 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1226,8 +1710,104 @@ export default function Home() {
               {/* Tab Content */}
               <div className="tab-content" style={{ marginTop: '20px', minHeight: '200px' }}>
                 {benActiveTab === 'finance' && (
-                  <div className="shots">
-                    <img 
+                  <div>
+                    {/* Payment Gateway Monitoring Description */}
+                    <div style={{
+                      marginBottom: '24px',
+                      textAlign: 'center',
+                      maxWidth: '600px',
+                      margin: '0 auto 24px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        color: 'rgba(255, 255, 255, 0.95)',
+                        letterSpacing: '-0.02em'
+                      }}>Payment Gateway & Transaction Monitoring</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>💳</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Gateway Decline Monitoring
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Track declined credit card transactions across all live gateways (including upcoming launches like Worldpay for Rain)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🔄</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Alternative Payment Methods
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Monitor declined APM transactions (primarily Bread for Thermomix) to ensure payment flexibility
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>⚠️</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Order Creation Verification
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Catch instances where customers are charged but orders aren&apos;t created in Fluid (rare now, mainly Bread authorization edge cases)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                          <span style={{ 
+                            fontSize: '20px', 
+                            lineHeight: '1.4',
+                            minWidth: '24px'
+                          }}>🎯</span>
+                          <div>
+                            <div style={{ fontWeight: '500', marginBottom: '4px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                              Primary Focus
+                            </div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.5' }}>
+                              Ensure live gateways and APMs aren&apos;t blocking legitimate transactions and verify orders are successfully created in Fluid
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ 
+                          marginTop: '8px',
+                          padding: '12px',
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(59, 130, 246, 0.2)'
+                        }}>
+                          <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.5' }}>
+                            <strong style={{ color: 'rgba(255, 255, 255, 0.85)' }}>Future monitoring goals:</strong> API performance on checkout, failed subscription orders, abandoned cart rates, and email delivery success rates
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screenshots */}
+                    <div className="shots">
+                      <img 
                       src="/team/Ben/Transation History.png"
                       alt="Transaction history and financial tracking interface"
                       className="thumb"
@@ -1264,6 +1844,7 @@ export default function Home() {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                       }}
                     />
+                    </div>
                   </div>
                 )}
 

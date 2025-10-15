@@ -40,20 +40,40 @@ ngrok http 3001
 # Copy the https URL (e.g., https://abc123.ngrok-free.app)
 ```
 
-### Step 3: Create Environment File
+### Step 3: Configure Environment Variables
+
+**For Vercel (Recommended):**
+
+Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+
+Add these variables:
+
+```bash
+# Required for scheduled tests (Vercel Cron authentication)
+# Generate with: openssl rand -base64 32
+CRON_SECRET=your_secure_random_string
+
+# Your app URL
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+
+# Optional: Email notifications (choose one)
+RESEND_API_KEY=re_...
+# OR
+SENDGRID_API_KEY=SG...
+```
+
+**For Local Development:**
 
 Create `apps/user-testing/.env.local`:
 
 ```bash
-# Company subdomain
-FLUID_COMPANY_SUBDOMAIN=tacobell
+# For local testing of scheduled tests
+CRON_SECRET=dev-secret-key
+NEXT_PUBLIC_APP_URL=http://localhost:3001
 
-# Your Fluid API token
-FLUID_API_TOKEN=your_actual_token_here
-
-# Your deployed URL
-EMBED_URL=https://your-app.vercel.app/user-testing
-# Or for ngrok: https://abc123.ngrok-free.app/user-testing
+# Optional: Email API keys
+# RESEND_API_KEY=your_key
+# SENDGRID_API_KEY=your_key
 ```
 
 ### Step 4: Register the Droplet
@@ -84,22 +104,44 @@ When Fluid loads your droplet, it automatically adds:
 - `?company_id=tacobell`
 - `&auth_token=<token>`
 
-## Environment Variables
+## Environment Variables Reference
 
-Your app needs these in production:
+### Required
 
-```bash
-# For Vercel, add in dashboard under Settings → Environment Variables
-FLUID_API_URL=https://tacobell.fluid.app/api
-```
+- `CRON_SECRET` - Secure random string for Vercel Cron authentication
+  - Generate with: `openssl rand -base64 32`
+  - Add to Vercel project settings
+  
+- `NEXT_PUBLIC_APP_URL` - Your deployed app URL
+  - Example: `https://your-app.vercel.app`
+  - Used by cron jobs to call API endpoints
+
+### Optional
+
+- `RESEND_API_KEY` - For email notifications via Resend
+- `SENDGRID_API_KEY` - For email notifications via SendGrid
+
+## How Scheduled Tests Work
+
+1. **User enables a test** and sets a schedule (e.g., hourly)
+2. **System stores** the schedule with next run time
+3. **Vercel Cron runs** `/api/cron` every 15 minutes
+4. **Cron checks** for tests that are due to run
+5. **Tests execute** automatically via `/api/tests/run`
+6. **Results are saved** and emails sent (if configured)
+7. **Next run time** is updated automatically
+
+See `SCHEDULING.md` for detailed information.
 
 ## Testing Checklist
 
 - [ ] Local URL test works: `http://localhost:3001/user-testing?company_id=tacobell&auth_token=...`
 - [ ] App is deployed (Vercel/Ngrok)
-- [ ] Environment variables are set
+- [ ] Environment variables are set (`CRON_SECRET`, `NEXT_PUBLIC_APP_URL`)
+- [ ] Cron job appears in Vercel Dashboard → Cron Jobs
 - [ ] Registration script ran successfully
 - [ ] Droplet appears in Fluid admin
+- [ ] Scheduled tests work (enable one and wait for cron)
 
 ## Troubleshooting
 
@@ -126,6 +168,12 @@ pnpm --filter user-testing dev
 # Test with URL parameters
 open "http://localhost:3001/user-testing?company_id=tacobell&auth_token=test"
 
+# Test scheduled tests locally
+open "http://localhost:3001/api/cron/trigger"
+
+# Generate a secure CRON_SECRET
+openssl rand -base64 32
+
 # Register droplet (after deploying)
 cd apps/user-testing
 tsx scripts/register-droplet.ts
@@ -137,7 +185,21 @@ vercel
 ## Notes
 
 - The droplet auto-enables tests and shows a guided tour on first visit
-- Email notifications require valid SMTP configuration in your deployment
+- **Scheduled tests** are executed by Vercel Cron every 15 minutes
+- Email notifications require Resend or SendGrid API key
 - Test results are stored in-memory (consider adding database for production)
-- Scheduling runs in-memory (consider Redis/queue for production scale)
+- Scheduled jobs are stored in-memory (for production, use a database)
+- See `SCHEDULING.md` for detailed information about the scheduling system
+
+## Verifying Scheduled Tests
+
+After deployment:
+
+1. Enable a test and set it to run every 30 minutes
+2. Save the configuration
+3. Note the "Next run" time shown in the UI
+4. Go to Vercel Dashboard → Your Project → Cron Jobs
+5. Wait for the cron to run (or manually trigger it)
+6. Check logs to verify execution
+7. Results will appear in the "Test Results" tab
 
