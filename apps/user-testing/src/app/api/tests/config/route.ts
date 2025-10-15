@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory storage for test configs (in production, use a database)
-const testConfigs = new Map<string, any>();
+import { testDataStore } from '@/lib/test-data-store';
 
 export async function GET(request: NextRequest) {
   const companyId = request.nextUrl.searchParams.get('companyId');
@@ -13,7 +11,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const config = testConfigs.get(companyId) || {
+  const config = testDataStore.getConfig(companyId) || {
     tests: [],
     emailNotifications: {
       enabled: true,
@@ -36,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    testConfigs.set(companyId, config);
+    testDataStore.setConfig(companyId, config);
 
     return NextResponse.json({ success: true, config });
   } catch (error) {

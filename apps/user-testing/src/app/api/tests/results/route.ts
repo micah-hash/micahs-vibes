@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory storage for test results (in production, use a database)
-const testResults = new Map<string, any[]>();
+import { testDataStore } from '@/lib/test-data-store';
 
 export async function GET(request: NextRequest) {
   const companyId = request.nextUrl.searchParams.get('companyId');
@@ -14,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const results = testResults.get(companyId) || [];
+  const results = testDataStore.getResults(companyId);
   const limitedResults = results.slice(0, limit);
 
   return NextResponse.json(limitedResults);
@@ -32,15 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = testResults.get(companyId) || [];
-    results.unshift(result); // Add to beginning
-    
-    // Keep only last 1000 results
-    if (results.length > 1000) {
-      results.pop();
-    }
-
-    testResults.set(companyId, results);
+    testDataStore.addResult(companyId, result);
 
     return NextResponse.json({ success: true });
   } catch (error) {

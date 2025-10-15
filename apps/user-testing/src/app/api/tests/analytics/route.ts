@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TestAnalytics, TestType } from '@/types/test-config';
-
-// This would query your database in production
-// For now, we'll calculate from in-memory results
-const testResults = new Map<string, any[]>();
+import { testDataStore } from '@/lib/test-data-store';
 
 export async function GET(request: NextRequest) {
   const companyId = request.nextUrl.searchParams.get('companyId');
@@ -15,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const results = testResults.get(companyId) || [];
+  const results = testDataStore.getResults(companyId);
 
   // Calculate analytics
   const analytics: TestAnalytics = {
