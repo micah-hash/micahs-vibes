@@ -759,11 +759,87 @@ export default function EmbedPage() {
                   </div>
                 </div>
 
+                {/* Scheduled Tests Overview */}
+                {testConfigs.some(c => c.enabled) && (
+                  <div className="mb-8 relative bg-gradient-to-br from-emerald-50/80 to-blue-50/50 backdrop-blur-lg border border-emerald-200/50 rounded-3xl p-6 shadow-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 rounded-3xl pointer-events-none"></div>
+                    
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-emerald-500 text-white rounded-xl p-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900">Active Schedules</h3>
+                            <p className="text-sm text-gray-600">
+                              {testConfigs.filter(c => c.enabled).length} test{testConfigs.filter(c => c.enabled).length === 1 ? '' : 's'} scheduled to run automatically
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {testConfigs.filter(c => c.enabled).map((config) => (
+                          <div key={config.id} className="bg-white/80 backdrop-blur rounded-2xl p-4 border border-gray-200/50 hover:border-emerald-300/50 transition-all">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4 flex-1">
+                                <div className="flex items-center gap-3">
+                                  <div className="bg-emerald-100 text-emerald-700 rounded-lg px-3 py-1 text-xs font-bold">
+                                    ACTIVE
+                                  </div>
+                                  <span className="font-semibold text-gray-900">{config.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span className="font-medium">
+                                    {SCHEDULE_OPTIONS.find(opt => opt.value === config.schedule)?.label || config.schedule}
+                                  </span>
+                                  {config.nextRun && (
+                                    <span className="text-gray-500">
+                                      • Next: {new Date(config.nextRun).toLocaleString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric', 
+                                        hour: 'numeric', 
+                                        minute: '2-digit',
+                                        hour12: true 
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => toggleTest(config.id)}
+                                className="ml-4 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg px-3 py-2 text-sm font-semibold transition-all flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Disable
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Test Configs */}
                 <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    All Available Tests
+                  </h3>
                   {testConfigs.map((config, index) => (
-                    <div key={config.id} className="group relative bg-white/60 backdrop-blur-lg border border-gray-200/50 rounded-3xl p-6 hover:shadow-2xl hover:border-blue-200/50 transition-all duration-300" data-tour={index === 0 ? "test-card" : undefined}>
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 rounded-3xl transition-all duration-300 pointer-events-none"></div>
+                    <div key={config.id} className={`group relative backdrop-blur-lg border rounded-3xl p-6 hover:shadow-2xl transition-all duration-300 ${config.enabled ? 'bg-emerald-50/40 border-emerald-200/50 hover:border-emerald-300' : 'bg-white/60 border-gray-200/50 hover:border-blue-200/50'}`} data-tour={index === 0 ? "test-card" : undefined}>
+                      <div className={`absolute inset-0 bg-gradient-to-br rounded-3xl transition-all duration-300 pointer-events-none ${config.enabled ? 'from-emerald-500/0 to-blue-500/0 group-hover:from-emerald-500/5 group-hover:to-blue-500/5' : 'from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5'}`}></div>
                       
                       <div className="relative flex items-start justify-between">
                         <div className="flex items-start space-x-5 flex-1">
@@ -778,6 +854,14 @@ export default function EmbedPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
                               <h3 className="font-semibold text-gray-900 text-lg">{config.name}</h3>
+                              {config.enabled && (
+                                <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  SCHEDULED
+                                </span>
+                              )}
                               {(() => {
                                 const getProductCount = () => {
                                   switch (config.id) {
