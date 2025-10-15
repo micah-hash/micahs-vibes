@@ -20,6 +20,7 @@ export default function EmbedPage() {
   const [progressPercentage, setProgressPercentage] = useState<number>(0);
   const [emailRecipients, setEmailRecipients] = useState<string>('');
   const [savedEmailRecipients, setSavedEmailRecipients] = useState<string>('');
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [editingTest, setEditingTest] = useState<TestConfig | null>(null);
   const [showTour, setShowTour] = useState(false);
   const [tourAutoEnabled, setTourAutoEnabled] = useState(false);
@@ -225,6 +226,28 @@ export default function EmbedPage() {
 
   const loadConfiguration = async (companyId: string) => {
     try {
+      // First try to load from localStorage (client-side persistence)
+      const localStorageKey = `fluid_test_config_${companyId}`;
+      const savedConfig = localStorage.getItem(localStorageKey);
+      
+      if (savedConfig) {
+        const data = JSON.parse(savedConfig);
+        console.log('[Config] Loaded from localStorage:', data);
+        if (data.tests && data.tests.length > 0) {
+          setTestConfigs(data.tests);
+        }
+        if (data.emailNotifications?.recipients) {
+          const emailString = data.emailNotifications.recipients.join(', ');
+          setEmailRecipients(emailString);
+          setSavedEmailRecipients(emailString);
+        }
+        if (data.lastSaved) {
+          setLastSavedTime(new Date(data.lastSaved));
+        }
+        return; // Use localStorage data
+      }
+
+      // Fallback to server if no localStorage data
       const response = await fetch(`/api/tests/config?companyId=${companyId}`);
       if (response.ok) {
         const data = await response.json();
@@ -271,15 +294,23 @@ export default function EmbedPage() {
 
     try {
       setLoading(true);
+      const now = new Date();
       const config = {
         tests: testConfigs,
         emailNotifications: {
           enabled: true,
           recipients: emailRecipients.split(',').map(e => e.trim()).filter(Boolean),
         },
+        lastSaved: now.toISOString(),
       };
 
-      // Save configuration
+      // Save to localStorage first (immediate persistence)
+      const localStorageKey = `fluid_test_config_${companyId}`;
+      localStorage.setItem(localStorageKey, JSON.stringify(config));
+      console.log('[Config] Saved to localStorage');
+      setLastSavedTime(now);
+
+      // Save configuration to server (backup)
       const response = await fetch('/api/tests/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -318,12 +349,20 @@ export default function EmbedPage() {
         }
 
         setTestConfigs(updatedConfigs);
+        
+        // Update localStorage with schedule info
+        const updatedConfig = {
+          ...config,
+          tests: updatedConfigs,
+        };
+        localStorage.setItem(localStorageKey, JSON.stringify(updatedConfig));
+        
         setSavedEmailRecipients(emailRecipients);
-        alert('Configuration saved and tests scheduled successfully!');
+        alert('✅ Configuration saved! Your settings are stored locally and tests are scheduled.');
       }
     } catch (error) {
       console.error('Failed to save configuration:', error);
-      alert('Failed to save configuration');
+      alert('❌ Failed to save configuration to server, but your settings are saved locally');
     } finally {
       setLoading(false);
     }
@@ -790,6 +829,22 @@ export default function EmbedPage() {
                     <p className="text-sm text-gray-600 mt-1">
                       Enable tests and set schedules - they'll run automatically in the background
                     </p>
+                    {lastSavedTime && (
+                      <div className="mt-2 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg w-fit">
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-semibold">
+                          Last saved: {lastSavedTime.toLocaleString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                          })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -807,6 +862,25 @@ export default function EmbedPage() {
                     >
                       <span className="relative">Save Configuration</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Data Persistence Warning */}
+                <div className="relative bg-gradient-to-br from-amber-50/80 to-orange-50/50 backdrop-blur-lg border border-amber-200/50 rounded-2xl p-4 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-amber-500 text-white rounded-lg p-2 flex-shrink-0">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-amber-900 mb-1">Data Persistence Note</h4>
+                      <p className="text-sm text-amber-800 leading-relaxed">
+                        <strong>✅ Test configurations are saved locally</strong> and will persist even if you close this page.
+                        <br />
+                        <strong>⚠️ Test history (results) is temporary</strong> and may be cleared periodically. For production use, we recommend integrating with a database.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
