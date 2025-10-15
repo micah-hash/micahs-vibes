@@ -852,28 +852,41 @@ export default function EmbedPage() {
                   </div>
                 </div>
 
-                {/* Scheduled Tests Overview */}
-                {testConfigs.some(c => c.enabled) && (
-                  <div className="mb-8 relative bg-gradient-to-br from-emerald-50/80 to-blue-50/50 backdrop-blur-lg border border-emerald-200/50 rounded-3xl p-6 shadow-xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 rounded-3xl pointer-events-none"></div>
-                    
-                    <div className="relative">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-emerald-500 text-white rounded-xl p-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900">Active Schedules</h3>
-                            <p className="text-sm text-gray-600">
-                              {testConfigs.filter(c => c.enabled).length} test{testConfigs.filter(c => c.enabled).length === 1 ? '' : 's'} scheduled to run automatically
-                            </p>
-                          </div>
+                {/* Scheduled Tests Overview - Always visible to prevent layout shift */}
+                <div className={`mb-8 relative backdrop-blur-lg border rounded-3xl p-6 shadow-xl transition-all duration-300 ${
+                  testConfigs.some(c => c.enabled) 
+                    ? 'bg-gradient-to-br from-emerald-50/80 to-blue-50/50 border-emerald-200/50' 
+                    : 'bg-gradient-to-br from-gray-50/80 to-slate-50/50 border-gray-200/50'
+                }`}>
+                  <div className={`absolute inset-0 bg-gradient-to-br rounded-3xl pointer-events-none transition-all duration-300 ${
+                    testConfigs.some(c => c.enabled)
+                      ? 'from-emerald-500/5 to-blue-500/5'
+                      : 'from-gray-500/5 to-slate-500/5'
+                  }`}></div>
+                  
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`text-white rounded-xl p-2 transition-all duration-300 ${
+                          testConfigs.some(c => c.enabled) ? 'bg-emerald-500' : 'bg-gray-400'
+                        }`}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Active Schedules</h3>
+                          <p className="text-sm text-gray-600">
+                            {testConfigs.some(c => c.enabled) 
+                              ? `${testConfigs.filter(c => c.enabled).length} test${testConfigs.filter(c => c.enabled).length === 1 ? '' : 's'} scheduled to run automatically`
+                              : 'No tests scheduled yet - enable a test below to get started'
+                            }
+                          </p>
                         </div>
                       </div>
-                      
+                    </div>
+                    
+                    {testConfigs.some(c => c.enabled) ? (
                       <div className="space-y-3">
                         {testConfigs.filter(c => c.enabled).map((config) => (
                           <div key={config.id} className="bg-white/80 backdrop-blur rounded-2xl p-4 border border-gray-200/50 hover:border-emerald-300/50 transition-all">
@@ -918,9 +931,20 @@ export default function EmbedPage() {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="bg-white/60 backdrop-blur rounded-2xl p-6 border border-gray-200/50 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-500 text-sm">
+                          Enable a test below to schedule automatic testing
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Test Configs */}
                 <div className="space-y-4">
