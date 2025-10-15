@@ -4,9 +4,11 @@ import { FluidApiClient } from './fluid-api';
 export class TestRunner {
   private client: FluidApiClient;
   private settings?: TestSettings;
-  private onProgress?: (message: string) => void;
+  private onProgress?: (message: string, currentStep?: number, totalSteps?: number) => void;
+  private currentStep = 0;
+  private totalSteps = 0;
 
-  constructor(client: FluidApiClient, settings?: TestSettings, onProgress?: (message: string) => void) {
+  constructor(client: FluidApiClient, settings?: TestSettings, onProgress?: (message: string, currentStep?: number, totalSteps?: number) => void) {
     this.client = client;
     this.settings = settings;
     this.onProgress = onProgress;
@@ -31,20 +33,28 @@ export class TestRunner {
     console.log(`========================================\n`);
 
     try {
+      // Reset progress tracking
+      this.currentStep = 0;
+      
       switch (testType) {
         case 'product-purchase':
+          this.totalSteps = 4; // 4 main steps for product purchase
           await this.runProductPurchaseTest(result);
           break;
         case 'enrollment-purchase':
+          this.totalSteps = 5; // 5 steps for enrollment
           await this.runEnrollmentPurchaseTest(result);
           break;
         case 'subscription-purchase':
+          this.totalSteps = 5; // 5 steps for subscription
           await this.runSubscriptionPurchaseTest(result);
           break;
         case 'refund-flow':
+          this.totalSteps = 4; // 4 steps for refund
           await this.runRefundFlowTest(result);
           break;
         case 'customer-auth':
+          this.totalSteps = 4; // 4 steps for auth
           await this.runCustomerAuthTest(result);
           break;
       }
@@ -593,10 +603,11 @@ export class TestRunner {
     };
 
     try {
-      console.log(`[Test Runner] Starting step: ${name}`);
-      // Update progress in UI
+      this.currentStep++;
+      console.log(`[Test Runner] Starting step: ${name} (${this.currentStep}/${this.totalSteps})`);
+      // Update progress in UI with step count
       if (this.onProgress) {
-        this.onProgress(name);
+        this.onProgress(name, this.currentStep, this.totalSteps);
       }
       const result = await fn();
       step.duration = Date.now() - startTime;

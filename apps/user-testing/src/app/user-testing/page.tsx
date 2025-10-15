@@ -17,6 +17,7 @@ export default function EmbedPage() {
   const [loading, setLoading] = useState(false);
   const [runningTestId, setRunningTestId] = useState<TestType | null>(null);
   const [testProgress, setTestProgress] = useState<string>('');
+  const [progressPercentage, setProgressPercentage] = useState<number>(0);
   const [emailRecipients, setEmailRecipients] = useState<string>('');
   const [savedEmailRecipients, setSavedEmailRecipients] = useState<string>('');
   const [editingTest, setEditingTest] = useState<TestConfig | null>(null);
@@ -361,6 +362,7 @@ export default function EmbedPage() {
     try {
       setLoading(true);
       setRunningTestId(testId);
+      setProgressPercentage(0);
       
       // Get test settings
       const testConfig = testConfigs.find(c => c.id === testId);
@@ -379,6 +381,7 @@ export default function EmbedPage() {
         const result = await runClientSideTest(testId, testConfig?.settings);
         
         setTestProgress('Saving results...');
+        setProgressPercentage(90);
         // Save result
         await fetch('/api/tests/results', {
           method: 'POST',
@@ -387,17 +390,25 @@ export default function EmbedPage() {
         });
 
         setTestProgress('Loading updated results...');
+        setProgressPercentage(95);
         // Reload results and analytics
         await loadResults(companyId);
         await loadAnalytics(companyId);
 
-        setTestProgress('');
+        setTestProgress('Complete!');
+        setProgressPercentage(100);
+        
+        // Brief delay to show 100% completion
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         alert(`Test completed: ${result.status}`);
       } else {
         // Run server-side test
         console.log('[Run Test] Running server-side test');
         const testName = testConfig?.name || 'test';
         setTestProgress(`Running ${testName.toLowerCase()}...`);
+        setProgressPercentage(50);
+        
         const response = await fetch('/api/tests/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -413,6 +424,7 @@ export default function EmbedPage() {
           const result = await response.json();
           
           setTestProgress('Saving results...');
+          setProgressPercentage(90);
           // Save result
           await fetch('/api/tests/results', {
             method: 'POST',
@@ -421,25 +433,34 @@ export default function EmbedPage() {
           });
 
           setTestProgress('Loading updated results...');
+          setProgressPercentage(95);
           // Reload results and analytics
           await loadResults(companyId);
           await loadAnalytics(companyId);
 
-          setTestProgress('');
+          setTestProgress('Complete!');
+          setProgressPercentage(100);
+          
+          // Brief delay to show 100% completion
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
           alert(`Test completed: ${result.status}`);
         } else {
           setTestProgress('');
+          setProgressPercentage(0);
           alert('Test execution failed');
         }
       }
     } catch (error) {
       console.error('Failed to run test:', error);
       setTestProgress('');
+      setProgressPercentage(0);
       alert('Failed to run test');
     } finally {
       setLoading(false);
       setRunningTestId(null);
       setTestProgress('');
+      setProgressPercentage(0);
     }
   };
 
@@ -454,9 +475,15 @@ export default function EmbedPage() {
     });
     
     console.log('[Client-Side Test] Creating test runner');
-    const runner = new TestRunner(client, settings, (progress) => {
+    const runner = new TestRunner(client, settings, (progress, currentStep, totalSteps) => {
       // Update progress in real-time
       setTestProgress(progress);
+      
+      // Calculate and update percentage
+      if (currentStep && totalSteps) {
+        const percentage = Math.round((currentStep / totalSteps) * 100);
+        setProgressPercentage(percentage);
+      }
     });
     
     console.log('[Client-Side Test] Running test...');
@@ -611,7 +638,10 @@ export default function EmbedPage() {
                 
                 {/* Progress bar */}
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-500 ease-out" 
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
                 </div>
                 
                 <p className="text-xs text-gray-500 mt-4">
