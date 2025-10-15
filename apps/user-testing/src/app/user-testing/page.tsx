@@ -362,19 +362,16 @@ export default function EmbedPage() {
       // Get test settings
       const testConfig = testConfigs.find(c => c.id === testId);
       
-      const response = await fetch('/api/tests/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          testType: testId,
-          companySubdomain: companyId,
-          authToken,
-          settings: testConfig?.settings,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
+      // Check if this is a product purchase test and SDK is available
+      const isProductPurchase = testId === 'product-purchase';
+      const sdkAvailable = typeof window !== 'undefined' && !!(window as any).FairShareSDK;
+      
+      console.log(`[Run Test] Test: ${testId}, SDK Available: ${sdkAvailable}`);
+      
+      // For product purchase with SDK, run client-side
+      if (isProductPurchase && sdkAvailable) {
+        console.log('[Run Test] Running client-side test with SDK');
+        const result = await runClientSideTest(testId, testConfig?.settings);
         
         // Save result
         await fetch('/api/tests/results', {
@@ -389,7 +386,37 @@ export default function EmbedPage() {
 
         alert(`Test completed: ${result.status}`);
       } else {
-        alert('Test execution failed');
+        // Run server-side test
+        console.log('[Run Test] Running server-side test');
+        const response = await fetch('/api/tests/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            testType: testId,
+            companySubdomain: companyId,
+            authToken,
+            settings: testConfig?.settings,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          
+          // Save result
+          await fetch('/api/tests/results', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyId, result }),
+          });
+
+          // Reload results and analytics
+          await loadResults(companyId);
+          await loadAnalytics(companyId);
+
+          alert(`Test completed: ${result.status}`);
+        } else {
+          alert('Test execution failed');
+        }
       }
     } catch (error) {
       console.error('Failed to run test:', error);
@@ -397,6 +424,26 @@ export default function EmbedPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const runClientSideTest = async (testId: TestType, settings: any) => {
+    const { TestRunner } = await import('@/lib/test-runner');
+    const { FluidApiClient } = await import('@/lib/fluid-api');
+    
+    console.log('[Client-Side Test] Creating Fluid API client');
+    const client = new FluidApiClient({
+      companySubdomain: companyId!,
+      authToken: authToken!,
+    });
+    
+    console.log('[Client-Side Test] Creating test runner');
+    const runner = new TestRunner(client, settings);
+    
+    console.log('[Client-Side Test] Running test...');
+    const result = await runner.runTest(testId);
+    
+    console.log('[Client-Side Test] Test completed:', result);
+    return result;
   };
 
   const runAllTests = async () => {
